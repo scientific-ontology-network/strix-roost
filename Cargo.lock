@@ -574,7 +574,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "semdep"
+name = "semantic_dependency"
 version = "0.1.0"
 dependencies = [
  "horned-owl",

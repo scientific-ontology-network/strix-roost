@@ -7,18 +7,24 @@ use horned_owl::io::{ParserConfiguration, RDFParserConfiguration};
 use horned_owl::model::{ArcAnnotatedComponent, ArcStr, Build};
 
 mod dependency;
-use dependency::{GrowthDependency,DependencyBuilder};
+use dependency::base::DependencyBuilder;
+use dependency::growth::GrowthDependency;
 
-fn main() -> Result<(), HornedError> {
+mod util;
+
+fn main() {
 
     let path = "/home/glauer/Downloads/build-files/oeo/2.8.0/oeo-full.owl";
-    let onto = load_rdf_ontology(path)?;
+    let onto = match load_rdf_ontology(path) {
+        Ok(onto) => onto,
+        Err(e) => panic!("{:?}", e),
+    };
+
     let (set_index,_,_) = onto.index();
     let dependencies = GrowthDependency::dep(set_index.iter().map(|arc|&**arc));
     for (a,b) in dependencies{
         println!("{:?} -> {:?}",a,b)
     }
-    Ok(())
 }
 
 fn load_rdf_ontology(path: &str) -> Result<ConcreteRDFOntology<ArcStr, ArcAnnotatedComponent>, HornedError>{
@@ -31,5 +37,3 @@ fn load_rdf_ontology(path: &str) -> Result<ConcreteRDFOntology<ArcStr, ArcAnnota
     },)?;
     Ok(res.0)
 }
-
-
