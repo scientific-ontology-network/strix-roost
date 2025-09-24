@@ -6,7 +6,7 @@ use horned_owl::io::rdf::reader::{read_with_build, ConcreteRDFOntology};
 use horned_owl::io::{ParserConfiguration, RDFParserConfiguration};
 use horned_owl::model::{ArcAnnotatedComponent, ArcStr, Build};
 
-mod dependency;
+pub mod dependency;
 use dependency::base::DependencyBuilder;
 use dependency::growth::GrowthDependency;
 
