@@ -1,25 +1,47 @@
+//! This module provides functionality for building and managing dependency relationships in ontologies.
+//! It defines structures and traits for representing and analyzing relationships between different
+//! ontological components such as class and property symbols.
+
 use std::collections::{HashMap, HashSet};
 use horned_owl::model::SubClassOf as SCO;
 use horned_owl::model::*;
 use itertools::Itertools;
 
-
+/// Represents a symbol in an ontology, which can be either a class expression or a role.
 #[derive(Debug, Eq, Clone, Hash, PartialEq)]
 pub enum OntologySymbol<'a, T: ForIRI> {
+    /// A reference to a class expression
     CE(&'a ClassExpression<T>),
+    /// A reference to an object property expression (role)
     Role(&'a ObjectPropertyExpression<T>),
 }
 
+/// Represents a dependency relationship between two ontology symbols
 pub type DependencyPair<'a, T: ForIRI> = (OntologySymbol<'a, T>, OntologySymbol<'a, T>);
+
+/// Maps ontology symbols to their dependent symbols
 pub type DependencyMap<'a, T: ForIRI> = HashMap<OntologySymbol<'a, T>, HashSet<OntologySymbol<'a, T>>>;
 
+/// Trait for building dependency relationships between ontological components
 pub trait DependencyBuilder<T: ForIRI> {
+    /// Constructs a dependency map from an iterator of annotated components
+    /// 
+    /// # Arguments
+    /// * `ontology_iter` - An iterator over annotated ontology components
     fn dep<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
     ) -> DependencyMap<'a, T>;
 }
 
+/// Trait for analyzing syntax-based dependencies in ontological components
 pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
+    /// Extracts dependency pairs from ontology components based on their syntactic structure
+    /// 
+    /// # Arguments
+    /// * `ontology_iter` - An iterator over annotated ontology components
+    ///
+    /// # Returns
+    /// A vector of dependency pairs representing relationships between ontological elements
     fn dependencies_from_components<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
     ) -> Vec<DependencyPair<'a, T>> {
@@ -117,6 +139,11 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
             .collect()
     }
 
+    // The following methods extract dependencies from specific ontological constructs.
+    // Each method takes a reference to a particular type of ontological component
+    // and returns a vector of dependency pairs.
+
+    /// Extracts dependencies from subsumption relationships (SubClassOf axioms)
     fn dependency_from_subsumption(_sco: &SCO<T>) -> Vec<DependencyPair<T>> {
         Vec::new()
     }
@@ -310,6 +337,6 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
         Vec::new()
     }
 
+    /// Analyzes and extracts dependencies from a class expression
     fn dependencies_from_class_expression(ce: &ClassExpression<T>) -> Vec<DependencyPair<T>>;
 }
-
