@@ -3,24 +3,30 @@
 //! ontological components such as class and property symbols.
 
 use std::collections::{HashMap, HashSet};
+use std::fs::File;
+use std::io::BufReader;
+use std::sync::Arc;
+use horned_owl::error::HornedError;
+use horned_owl::io::{ParserConfiguration, RDFParserConfiguration};
+use horned_owl::io::rdf::reader::{read_with_build, ConcreteRDFOntology};
 use horned_owl::model::SubClassOf as SCO;
 use horned_owl::model::*;
 use itertools::Itertools;
 
 /// Represents a symbol in an ontology, which can be either a class expression or a role.
 #[derive(Debug, Eq, Clone, Hash, PartialEq)]
-pub enum OntologySymbol<'a, T: ForIRI> {
+pub enum OntologySymbol<T: ForIRI> {
     /// A reference to a class expression
-    CE(&'a ClassExpression<T>),
+    CE(ClassExpression<T>),
     /// A reference to an object property expression (role)
-    Role(&'a ObjectPropertyExpression<T>),
+    Role(ObjectPropertyExpression<T>),
 }
 
 /// Represents a dependency relationship between two ontology symbols
-pub type DependencyPair<'a, T: ForIRI> = (OntologySymbol<'a, T>, OntologySymbol<'a, T>);
+pub type DependencyPair<T: ForIRI> = (OntologySymbol<T>, OntologySymbol<T>);
 
 /// Maps ontology symbols to their dependent symbols
-pub type DependencyMap<'a, T: ForIRI> = HashMap<OntologySymbol<'a, T>, HashSet<OntologySymbol<'a, T>>>;
+pub type DependencyMap<T: ForIRI> = HashMap<OntologySymbol<T>, HashSet<OntologySymbol<T>>>;
 
 /// Trait for building dependency relationships between ontological components
 pub trait DependencyBuilder<T: ForIRI> {
@@ -28,9 +34,10 @@ pub trait DependencyBuilder<T: ForIRI> {
     /// 
     /// # Arguments
     /// * `ontology_iter` - An iterator over annotated ontology components
-    fn dep<'a>(
+    fn build_dependencies<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-    ) -> DependencyMap<'a, T>;
+    ) -> DependencyMap<T>
+    where T:'a ;
 }
 
 /// Trait for analyzing syntax-based dependencies in ontological components
@@ -44,93 +51,93 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
     /// A vector of dependency pairs representing relationships between ontological elements
     fn dependencies_from_components<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-    ) -> Vec<DependencyPair<'a, T>> {
+    ) -> Vec<DependencyPair<T>> where T:'a{
         ontology_iter
             .map(|ce| match &ce.component {
-                Component::SubClassOf(sco) => Self::dependency_from_subsumption(sco),
-                Component::EquivalentClasses(ecs) => Self::dependency_from_equivalences(ecs),
-                Component::DisjointClasses(dcs) => Self::dependency_from_disjoint_classes(dcs),
-                Component::DisjointUnion(du) => Self::dependency_from_disjoint_union(du),
-                Component::SubObjectPropertyOf(spo) => {
+                Component::SubClassOf(ref sco) => Self::dependency_from_subsumption(sco),
+                Component::EquivalentClasses(ref ecs) => Self::dependency_from_equivalences(ecs),
+                Component::DisjointClasses(ref dcs) => Self::dependency_from_disjoint_classes(dcs),
+                Component::DisjointUnion(ref du) => Self::dependency_from_disjoint_union(du),
+                Component::SubObjectPropertyOf(ref spo) => {
                     Self::dependency_from_sub_object_property(spo)
                 }
-                Component::EquivalentObjectProperties(eops) => {
+                Component::EquivalentObjectProperties(ref eops) => {
                     Self::dependency_from_equiv_object_properties(eops)
                 }
-                Component::DisjointObjectProperties(dops) => {
+                Component::DisjointObjectProperties(ref dops) => {
                     Self::dependency_from_disjoint_object_properties(dops)
                 }
-                Component::InverseObjectProperties(iop) => {
+                Component::InverseObjectProperties(ref iop) => {
                     Self::dependency_from_inverse_object_properties(iop)
                 }
-                Component::ObjectPropertyDomain(opd) => {
+                Component::ObjectPropertyDomain(ref opd) => {
                     Self::dependency_from_object_property_domain(opd)
                 }
-                Component::ObjectPropertyRange(opr) => {
+                Component::ObjectPropertyRange(ref opr) => {
                     Self::dependency_from_object_property_range(opr)
                 }
-                Component::FunctionalObjectProperty(fop) => {
+                Component::FunctionalObjectProperty(ref fop) => {
                     Self::dependency_from_functional_object_property(fop)
                 }
-                Component::InverseFunctionalObjectProperty(ifop) => {
+                Component::InverseFunctionalObjectProperty(ref ifop) => {
                     Self::dependency_from_inverse_functional_object_property(ifop)
                 }
-                Component::ReflexiveObjectProperty(rop) => {
+                Component::ReflexiveObjectProperty(ref rop) => {
                     Self::dependency_from_reflexive_object_property(rop)
                 }
-                Component::IrreflexiveObjectProperty(irop) => {
+                Component::IrreflexiveObjectProperty(ref irop) => {
                     Self::dependency_from_irreflexive_object_property(irop)
                 }
-                Component::SymmetricObjectProperty(sop) => {
+                Component::SymmetricObjectProperty(ref sop) => {
                     Self::dependency_from_symmetric_object_property(sop)
                 }
-                Component::AsymmetricObjectProperty(aop) => {
+                Component::AsymmetricObjectProperty(ref aop) => {
                     Self::dependency_from_asymmetric_object_property(aop)
                 }
-                Component::TransitiveObjectProperty(top) => {
+                Component::TransitiveObjectProperty(ref top) => {
                     Self::dependency_from_transitive_object_property(top)
                 }
-                Component::SubDataPropertyOf(sdp) => Self::dependency_from_sub_data_property(sdp),
-                Component::EquivalentDataProperties(edp) => {
+                Component::SubDataPropertyOf(ref sdp) => Self::dependency_from_sub_data_property(sdp),
+                Component::EquivalentDataProperties(ref edp) => {
                     Self::dependency_from_equiv_data_properties(edp)
                 }
-                Component::DisjointDataProperties(ddp) => {
+                Component::DisjointDataProperties(ref ddp) => {
                     Self::dependency_from_disjoint_data_properties(ddp)
                 }
-                Component::DataPropertyDomain(dpd) => {
+                Component::DataPropertyDomain(ref dpd) => {
                     Self::dependency_from_data_property_domain(dpd)
                 }
-                Component::DataPropertyRange(dpr) => Self::dependency_from_data_property_range(dpr),
-                Component::FunctionalDataProperty(fdp) => {
+                Component::DataPropertyRange(ref dpr) => Self::dependency_from_data_property_range(dpr),
+                Component::FunctionalDataProperty(ref fdp) => {
                     Self::dependency_from_functional_data_property(fdp)
                 }
-                Component::ClassAssertion(ca) => Self::dependency_from_class_assertion(ca),
-                Component::ObjectPropertyAssertion(opa) => {
+                Component::ClassAssertion(ref ca) => Self::dependency_from_class_assertion(ca),
+                Component::ObjectPropertyAssertion(ref opa) => {
                     Self::dependency_from_object_property_assertion(opa)
                 }
-                Component::NegativeObjectPropertyAssertion(nopa) => {
+                Component::NegativeObjectPropertyAssertion(ref nopa) => {
                     Self::dependency_from_negative_object_property_assertion(nopa)
                 }
-                Component::DataPropertyAssertion(dpa) => {
+                Component::DataPropertyAssertion(ref dpa) => {
                     Self::dependency_from_data_property_assertion(dpa)
                 }
-                Component::NegativeDataPropertyAssertion(ndpa) => {
+                Component::NegativeDataPropertyAssertion(ref ndpa) => {
                     Self::dependency_from_negative_data_property_assertion(ndpa)
                 }
-                Component::SameIndividual(si) => Self::dependency_from_same_individual(si),
-                Component::DifferentIndividuals(di) => {
+                Component::SameIndividual(ref si) => Self::dependency_from_same_individual(si),
+                Component::DifferentIndividuals(ref di) => {
                     Self::dependency_from_different_individuals(di)
                 }
-                Component::AnnotationAssertion(aa) => {
+                Component::AnnotationAssertion(ref aa) => {
                     Self::dependency_from_annotation_assertion(aa)
                 }
-                Component::SubAnnotationPropertyOf(sapo) => {
+                Component::SubAnnotationPropertyOf(ref sapo) => {
                     Self::dependency_from_sub_annotation_property(sapo)
                 }
-                Component::AnnotationPropertyDomain(apd) => {
+                Component::AnnotationPropertyDomain(ref apd) => {
                     Self::dependency_from_annotation_property_domain(apd)
                 }
-                Component::AnnotationPropertyRange(apr) => {
+                Component::AnnotationPropertyRange(ref apr) => {
                     Self::dependency_from_annotation_property_range(apr)
                 }
                 _ => Vec::new(),
@@ -165,9 +172,9 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
     }
 
     fn dependency_from_disjoint_class_pair<'a>(
-        _c1: &'a ClassExpression<T>,
-        _c2: &'a ClassExpression<T>,
-    ) -> Vec<DependencyPair<'a, T>> {
+        _c1: &ClassExpression<T>,
+        _c2: &ClassExpression<T>,
+    ) -> Vec<DependencyPair<T>> {
         Vec::new()
     }
 
@@ -332,11 +339,22 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
     }
 
     fn dependency_from_annotation_property_range(
-        _apr: &'_ AnnotationPropertyRange<T>,
-    ) -> Vec<DependencyPair<'_, T>> {
+        _apr: &AnnotationPropertyRange<T>,
+    ) -> Vec<DependencyPair<T>> {
         Vec::new()
     }
 
     /// Analyzes and extracts dependencies from a class expression
     fn dependencies_from_class_expression(ce: &ClassExpression<T>) -> Vec<DependencyPair<T>>;
+}
+
+pub fn load_rdf_ontology(path: &str) -> Result<ConcreteRDFOntology<ArcStr, ArcAnnotatedComponent>, HornedError>{
+    let file = File::open(path)?;
+    let reader = &mut BufReader::new(file);
+    let build = Build::new_arc();
+    let res = read_with_build::<ArcStr, ArcAnnotatedComponent, BufReader<File>>(reader, &build, ParserConfiguration {
+        rdf: RDFParserConfiguration { lax: true },
+        ..Default::default()
+    },)?;
+    Ok(res.0)
 }
