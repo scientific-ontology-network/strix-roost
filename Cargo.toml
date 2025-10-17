@@ -1,16 +1,16 @@
 [package]
-name = "semantic_dependency"
+name = "strix-roost"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "semantic_dependency"           # The name of the target.
-path = "src/lib.rs"    # The source file of the target.
-test = true            # Is tested by default.
+name = "strix_roost"           # Libraries cannot contain hyphens!
+path = "src/lib.rs"
+test = true
 
 
 [[bin]]
-name = "sem-dep"
+name = "strix-roost"
 path = "src/bin.rs"
 test = true
 bench = false
