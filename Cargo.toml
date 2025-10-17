@@ -20,3 +20,4 @@ bench = false
 [dependencies]
 horned-owl = "1.1.0"
 itertools = "0.14.0"
+serde = { version = "1.0.223", features = ["derive"] }

@@ -347,14 +347,3 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
     /// Analyzes and extracts dependencies from a class expression
     fn dependencies_from_class_expression(ce: &ClassExpression<T>) -> Vec<DependencyPair<T>>;
 }
-
-pub fn load_rdf_ontology(path: &str) -> Result<ConcreteRDFOntology<ArcStr, ArcAnnotatedComponent>, HornedError>{
-    let file = File::open(path)?;
-    let reader = &mut BufReader::new(file);
-    let build = Build::new_arc();
-    let res = read_with_build::<ArcStr, ArcAnnotatedComponent, BufReader<File>>(reader, &build, ParserConfiguration {
-        rdf: RDFParserConfiguration { lax: true },
-        ..Default::default()
-    },)?;
-    Ok(res.0)
-}

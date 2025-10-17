@@ -7,6 +7,6 @@ use horned_owl::io::{ParserConfiguration, RDFParserConfiguration};
 use horned_owl::model::{ArcAnnotatedComponent, ArcStr, Build};
 
 pub mod dependency;
-pub(crate) mod util;
-
+pub mod ontology;
+pub mod util;
 
