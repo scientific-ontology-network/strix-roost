@@ -5,7 +5,6 @@ use horned_owl::ontology::set::SetOntology;
 use std::fs::File;
 use std::io::BufReader;
 use horned_owl::io::rdf::reader::ConcreteRDFOntology;
-use horned_owl::ontology::iri_mapped::IRIMappedIndex;
 
 pub fn load_set_ontology(path: &str) -> SetOntology<ArcStr> {
     let ending = path.split(".").last().unwrap();

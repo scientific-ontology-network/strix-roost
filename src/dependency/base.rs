@@ -3,15 +3,8 @@
 //! ontological components such as class and property symbols.
 
 use std::collections::{HashMap, HashSet};
-use std::fs::File;
-use std::io::BufReader;
-use std::sync::Arc;
-use horned_owl::error::HornedError;
-use horned_owl::io::{ParserConfiguration, RDFParserConfiguration};
-use horned_owl::io::rdf::reader::{read_with_build, ConcreteRDFOntology};
 use horned_owl::model::SubClassOf as SCO;
 use horned_owl::model::*;
-use horned_owl::vocab::OWL::Nothing;
 use itertools::Itertools;
 
 /// Represents a symbol in an ontology, which can be either a class expression or a role.
@@ -24,10 +17,10 @@ pub enum OntologySymbol<'a, T: ForIRI> {
 }
 
 /// Represents a dependency relationship between two ontology symbols
-pub type DependencyPair<'a, T: ForIRI> = (OntologySymbol<'a, T>, OntologySymbol<'a, T>);
+pub type DependencyPair<'a, T> = (OntologySymbol<'a, T>, OntologySymbol<'a, T>);
 
 /// Maps ontology symbols to their dependent symbols
-pub type DependencyMap<'a, T: ForIRI> = HashMap<OntologySymbol<'a, T>, HashSet<OntologySymbol<'a, T>>>;
+pub type DependencyMap<'a, T> = HashMap<OntologySymbol<'a, T>, HashSet<OntologySymbol<'a, T>>>;
 
 /// Trait for building dependency relationships between ontological components
 pub trait DependencyBuilder<'a, T: ForIRI> {

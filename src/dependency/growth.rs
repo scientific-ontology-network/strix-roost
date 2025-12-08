@@ -1,9 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 use std::hash::Hash;
-use std::sync::Arc;
 use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, EquivalentClasses, EquivalentObjectProperties, ForIRI, SubClassOf, SubObjectPropertyExpression};
-use itertools::cloned;
 use crate::dependency::base::{DependencyPair, DependencyMap, DependencyBuilder, OntologySymbol, SyntaxBasedDependency, reduce_map};
 use crate::util::graph::transitive_closure;
 pub struct GrowthDependency;
@@ -23,7 +21,7 @@ impl GrowthDependency {
                 Component::EquivalentClasses(EquivalentClasses(ecs)) => {
                     for a in ecs {
                         for b in ecs {
-                            if (a != b)
+                            if a != b
                             {
                                 sup_map.entry(OntologySymbol::CE(a)).or_insert(HashSet::new()).insert(OntologySymbol::CE(b));
                                 sup_map.entry(OntologySymbol::CE(b)).or_insert(HashSet::new()).insert(OntologySymbol::CE(a));
@@ -40,7 +38,7 @@ impl GrowthDependency {
                 Component::EquivalentObjectProperties(EquivalentObjectProperties(ecs)) => {
                     for a in ecs {
                         for b in ecs {
-                            if (a != b)
+                            if a != b
                             {
                                 sup_map.entry(OntologySymbol::Role(a)).or_insert(HashSet::new()).insert(OntologySymbol::Role(b));
                                 sup_map.entry(OntologySymbol::Role(b)).or_insert(HashSet::new()).insert(OntologySymbol::Role(a));
