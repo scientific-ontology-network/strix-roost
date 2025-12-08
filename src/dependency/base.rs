@@ -151,7 +151,7 @@ pub trait SyntaxBasedDependency<'a, T: ForIRI>: DependencyBuilder<'a, T> {
         HashSet::new()
     }
 
-    fn dependency_from_disjoint_classes(dcs: &'a DisjointClasses<T>) -> HashSet<DependencyPair<T>> {
+    fn dependency_from_disjoint_classes(dcs: &'a DisjointClasses<T>) -> HashSet<DependencyPair<'a, T>> {
         dcs.0
             .iter()
             .combinations(2)
