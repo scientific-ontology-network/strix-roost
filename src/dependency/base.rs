@@ -11,6 +11,7 @@ use horned_owl::io::{ParserConfiguration, RDFParserConfiguration};
 use horned_owl::io::rdf::reader::{read_with_build, ConcreteRDFOntology};
 use horned_owl::model::SubClassOf as SCO;
 use horned_owl::model::*;
+use horned_owl::vocab::OWL::Nothing;
 use itertools::Itertools;
 
 /// Represents a symbol in an ontology, which can be either a class expression or a role.
@@ -344,4 +345,29 @@ pub trait SyntaxBasedDependency<'a, T: ForIRI>: DependencyBuilder<'a, T> {
 
     /// Analyzes and extracts dependencies from a class expression
     fn dependencies_from_class_expression(ce: &ClassExpression<T>) -> HashSet<DependencyPair<T>>;
+}
+
+pub fn reduce_map<T: ForIRI>(map: &DependencyMap<T>) -> HashMap<T, HashSet<T>> {
+    let mut new_map = HashMap::new();
+    let processed_protomap = map.iter().filter_map( |(k,v)|
+        match k {
+            OntologySymbol::CE(ClassExpression::Class(iri)) => { Some((iri.underlying(), filter_complex_symbols(v.iter()))) }
+            OntologySymbol::Role(ObjectPropertyExpression::ObjectProperty(iri)) => { Some((iri.underlying(), filter_complex_symbols(v.iter()))) }
+            _ => { None }
+        }
+    );
+    for (k,v) in processed_protomap {
+        new_map.insert(k, v);
+    }
+    new_map
+}
+
+fn filter_complex_symbols<'a, T, S>(l: S) -> HashSet<T> where S: Iterator<Item=&'a OntologySymbol<'a, T>>, T: 'a + ForIRI {
+    l.filter_map(
+        |x| match x {
+            OntologySymbol::CE(ClassExpression::Class(iri)) => {Some(iri.underlying())}
+            OntologySymbol::Role(ObjectPropertyExpression::ObjectProperty(iri)) => {Some(iri.underlying())}
+            _ => None
+        }
+    ).collect()
 }

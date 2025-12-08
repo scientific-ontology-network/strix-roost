@@ -1,17 +1,19 @@
 use std::collections::{HashMap, HashSet};
+use std::fmt::Debug;
+use std::hash::Hash;
 use std::sync::Arc;
 use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, EquivalentClasses, EquivalentObjectProperties, ForIRI, SubClassOf, SubObjectPropertyExpression};
 use itertools::cloned;
-use crate::dependency::base::{DependencyPair, DependencyMap, DependencyBuilder, OntologySymbol, SyntaxBasedDependency};
+use crate::dependency::base::{DependencyPair, DependencyMap, DependencyBuilder, OntologySymbol, SyntaxBasedDependency, reduce_map};
 use crate::util::graph::transitive_closure;
 pub struct GrowthDependency;
 
 impl GrowthDependency {
-
     fn build_super_map<'a, T: ForIRI>(
         ontology_iter: impl Iterator<Item=&'a AnnotatedComponent<T>>,
     ) -> HashMap<OntologySymbol<'a, T>, HashSet<OntologySymbol<'a, T>>>
-    where {
+    where
+    {
         let mut sup_map = DependencyMap::new();
         for ax in ontology_iter {
             match &ax.component {
@@ -32,9 +34,8 @@ impl GrowthDependency {
                 Component::SubObjectPropertyOf(sco) => {
                     match &sco.sub {
                         SubObjectPropertyExpression::ObjectPropertyChain(_) => {}
-                        SubObjectPropertyExpression::ObjectPropertyExpression(ope) => {sup_map.entry(OntologySymbol::Role(ope)).or_insert(HashSet::new()).insert(OntologySymbol::Role(&sco.sup));}
+                        SubObjectPropertyExpression::ObjectPropertyExpression(ope) => { sup_map.entry(OntologySymbol::Role(ope)).or_insert(HashSet::new()).insert(OntologySymbol::Role(&sco.sup)); }
                     }
-
                 }
                 Component::EquivalentObjectProperties(EquivalentObjectProperties(ecs)) => {
                     for a in ecs {
@@ -46,7 +47,6 @@ impl GrowthDependency {
                             }
                         }
                     }
-
                 }
                 _ => {}
             }
@@ -54,12 +54,8 @@ impl GrowthDependency {
         sup_map
     }
 
-    pub fn remove_supers<'a, T: ForIRI>(dep_map: DependencyMap<'a, T>, ontology_iter: impl Iterator<Item=&'a AnnotatedComponent<T>>) -> DependencyMap<'a, T>
-    where
-        T: 'a,
-    {
-        let sup_map = transitive_closure(&Self::build_super_map(ontology_iter));
-        let mut new_map: DependencyMap<'a, T> = HashMap::new();
+    fn remove_targets<S: Hash + Eq + Clone + Debug>(dep_map: &HashMap<S, HashSet<S>>, sup_map: HashMap<S, HashSet<S>>) -> HashMap<S, HashSet<S>> {
+        let mut new_map = HashMap::new();
         for (k, v) in dep_map.iter() {
             let supers_of_classes_in_v = v.into_iter().filter_map(|x| sup_map.get(x)).flatten().collect::<HashSet<_>>();
             let supers_of_k = match sup_map.get(k) {
@@ -69,9 +65,26 @@ impl GrowthDependency {
             let irrelevant_dependencies = supers_of_classes_in_v.union(&supers_of_k).map(|v| *v).collect();
             let v_set: HashSet<_> = v.iter().map(|x| x).collect();
             let relevant_dependencies: HashSet<_> = v_set.difference(&irrelevant_dependencies).collect();
-            new_map.insert(k.clone(), relevant_dependencies.iter().map(|v| (**v).clone()).collect());
+            new_map.insert(k.clone(), relevant_dependencies.iter().map(|v| (***v).clone()).collect());
         }
         new_map
+    }
+
+    pub fn remove_super_expressions<'a, T: ForIRI>(dep_map: DependencyMap<'a, T>, ontology_iter: impl Iterator<Item=&'a AnnotatedComponent<T>>) -> DependencyMap<'a, T>
+    where
+        T: 'a,
+    {
+        let sup_map = transitive_closure(&Self::build_super_map(ontology_iter));
+        Self::remove_targets(&dep_map, sup_map)
+    }
+
+
+    pub fn remove_super_symbols<'a, T: ForIRI>(dep_map: &HashMap<T, HashSet<T>>, ontology_iter: impl Iterator<Item=&'a AnnotatedComponent<T>>) -> HashMap<T, HashSet<T>>
+    where
+        T: 'a,
+    {
+        let sup_map = reduce_map(&transitive_closure(&Self::build_super_map(ontology_iter)));
+        Self::remove_targets(&dep_map, sup_map)
     }
 }
 
@@ -82,12 +95,12 @@ impl<'a, T: ForIRI> DependencyBuilder<'a, T> for GrowthDependency {
     {
         let mut map = DependencyMap::new();
         for (a,b) in Self::dependencies_from_components(ontology_iter){
-            map.entry(a).or_insert(HashSet::new()).insert(b);
+            if !map.contains_key(&a) {
+                map.insert(a.clone(), HashSet::new());
+            }
+            map.get_mut(&a).unwrap().insert(b);
         }
-        println!("Build transitive closure of growth dependency map... ");
-        transitive_closure(&map);
-        println!("Done!");
-        map
+        transitive_closure(&map)
     }
 }
 
