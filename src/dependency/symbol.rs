@@ -28,6 +28,22 @@ pub trait ForSymbol: Eq + Hash + PartialEq + Debug + Clone {
 
 }
 
+#[derive(Debug, Eq, Clone, Hash, PartialEq)]
+pub struct StringSymbol {
+    symbol: String,
+}
+
+impl StringSymbol {
+    pub fn new(symbol: String) -> StringSymbol {
+        StringSymbol{symbol}
+    }
+}
+
+
+impl ForSymbol for StringSymbol {
+    fn is_atomic(&self) -> bool {true}
+}
+
 
 impl<'a,T: ForIRI> ForSymbol for OntologySymbol<'a, T> {
     fn is_atomic(&self) -> bool {
@@ -61,6 +77,17 @@ impl<'a, T: ForIRI, C> SymbolContainer<OntologySymbol<'a, T>, C> for OntologySym
     }
 
     fn from(x: OntologySymbol<'a, T>) -> Self {
+        x
+    }
+
+}
+
+impl<C> SymbolContainer<StringSymbol, C> for StringSymbol {
+    fn get_symbol(&self) -> &StringSymbol {
+        &self
+    }
+
+    fn from(x: StringSymbol) -> Self {
         x
     }
 

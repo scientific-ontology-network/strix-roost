@@ -6,7 +6,7 @@ use crate::dependency::symbol::{ForSymbol, OntologySymbol, SymbolContainer};
 /// Compute the transitive closure of a directed graph.
 /// Input: adjacency list as HashMap<T, HashSet<T>>.
 /// Output: new adjacency list with reachability closure.
-pub fn transitive_closure<'a, S: ForSymbol, T:ForIRI + 'a, SC: SymbolContainer<S, &'a Component<T>>>(graph: &HashMap<S, HashSet<SC>>) -> HashMap<S, HashSet<SC>>
+pub fn transitive_closure<S: ForSymbol, C, SC: SymbolContainer<S, C>>(graph: &HashMap<S, HashSet<SC>>) -> HashMap<S, HashSet<SC>>
 where
 {
     let mut closure: HashMap<S, HashSet<SC>> = HashMap::new();
@@ -20,7 +20,7 @@ where
 }
 
 /// Perform DFS with memoization to compute all reachable nodes.
-fn dfs_with_memo<'a, S: ForSymbol, T: ForIRI + 'a, SC: SymbolContainer<S, &'a Component<T>>>(
+fn dfs_with_memo<S: ForSymbol, C, SC: SymbolContainer<S, C>>(
     start: &S,
     graph: &HashMap<S, HashSet<SC>>,
     memo: &mut HashMap<S, HashSet<SC>>,
@@ -58,25 +58,32 @@ fn dfs_with_memo<'a, S: ForSymbol, T: ForIRI + 'a, SC: SymbolContainer<S, &'a Co
 
 #[cfg(test)]
 mod tests {
+    use horned_owl::model::ArcStr;
+    use crate::dependency::symbol::{DependencySymbol, StringSymbol};
     use super::*;
 
     #[test]
     fn test_transitive_closure() {
-        let mut graph: HashMap<&str, HashSet<&str>> = HashMap::new();
-        graph.insert("A", ["B"].into_iter().collect());
-        graph.insert("B", ["C"].into_iter().collect());
-        graph.insert("C", HashSet::new());
 
-        let closure = transitive_closure(&graph);
+        let to_ds = |s: &str| StringSymbol::new(s.to_string());
+        let mut graph: HashMap<_, _> = HashMap::new();
+        let a =to_ds("A");
+        let b = to_ds("B");
+        let c = to_ds("C");
+        graph.insert(a.clone(), [b.clone()].into_iter().collect());
+        graph.insert(b.clone(), [c.clone()].into_iter().collect());
+        graph.insert(c.clone(), HashSet::new());
+
+        let closure = transitive_closure::<StringSymbol, (), StringSymbol>(&graph);
 
         assert_eq!(
-            closure.get("A").unwrap(),
-            &["B", "C"].into_iter().collect()
+            closure.get(&a).unwrap(),
+            &[b.clone(), c.clone()].into_iter().collect()
         );
         assert_eq!(
-            closure.get("B").unwrap(),
-            &["C"].into_iter().collect()
+            closure.get(&b).unwrap(),
+            &[c.clone()].into_iter().collect()
         );
-        assert!(closure.get("C").unwrap().is_empty());
+        assert!(closure.get(&c).unwrap().is_empty());
     }
 }
