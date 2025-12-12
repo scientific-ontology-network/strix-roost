@@ -1,0 +1,1 @@
+pub const DEFINITION: &str = "http://purl.obolibrary.org/obo/IAO_0000115";
