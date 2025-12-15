@@ -1,8 +1,8 @@
 
-use strix_roost::dependency::cli::{Print, Runnable};
+use strix_roost::dependency::cli::{DependencyWriter, Runnable};
 
 fn main() {
-    Print::try_run().unwrap_or_else(|e| {
+    DependencyWriter::try_run().unwrap_or_else(|e| {
         panic!("{}", e);
     });
 }

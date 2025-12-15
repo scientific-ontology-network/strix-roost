@@ -146,7 +146,7 @@ pub fn invert_map<S: ForSymbol, Ax: Clone, SC: SymbolContainer<S, Vec<Ax>>>(map:
                 new_map.insert(v.get_symbol().clone(), HashSet::new());
             }
             let l = new_map.get_mut(v.get_symbol()).unwrap();
-            let kc = SC::from_symbol_and_axiom(k.clone(), v.get_underlying().unwrap().iter().cloned().collect());
+            let kc = SC::from_symbol_and_axiom(k.clone(), v.get_underlying().unwrap_or(&Vec::new()).iter().cloned().collect());
             l.insert(kc);
         }
     }
