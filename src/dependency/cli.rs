@@ -55,16 +55,7 @@ impl Runnable<()> for DependencyWriter {
                         for (k, should_be_dependent) in result {
                             let k_iri = k.get_symbol().get_iri().unwrap();
                             let k_ax = k.get_axioms();
-                            let ax_list: Vec<String> = k_ax.iter().map(|&ax| {
-                                let fnax = ax.as_functional();
-                                let mut s: String = fnax.to_string();
-                                for (k, v) in annotations.labels.iter() {
-                                    let pattern = format!("<{k}>");
-                                    let name = format!("[{v}]({k})");
-                                    s = s.replace(&pattern, &name);
-                                }
-                                s
-                            }).collect();
+                            let ax_list: Vec<String> = k_ax.iter().map(|&ax| ax.as_functional().to_string()).collect();
                             r.push(json!({"iri": k_iri.to_string(), "llm": should_be_dependent, "cause": ax_list}));
                         }
                         results.insert(a_t.to_string(), r);
