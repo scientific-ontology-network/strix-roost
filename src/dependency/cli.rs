@@ -55,7 +55,6 @@ impl Runnable<()> for Print {
         let serialized_dependencies: HashMap<String, HashSet<String>> = cleaned_dependencies.iter().map(| (k,vs)| (k.get_iri().unwrap().to_string(), vs.iter().map(|v| v.get_symbol().get_iri().unwrap().to_string()).collect())).collect();
         let mut annotations = Annotations::<_>::default();
         let placeholder = ArcStr::from("");
-        println!("{:?}", dependencies);
         annotations.visit_components(set_index.iter(), &placeholder);
         for (a, vs) in cleaned_dependencies.iter(){
             let a_t = a.get_iri().unwrap();

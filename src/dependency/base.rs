@@ -334,10 +334,10 @@ pub trait SyntaxBasedDependency<'a, S: ForSymbol, T:ForIRI + 'a>: DependencyBuil
 
 pub fn reduce_map<'a, T: ForIRI + 'a, S:ForSymbol, SC:SymbolContainer<S, &'a Component<T>> >(map: &HashMap<S,HashSet<SC>>) -> HashMap<S, HashSet<SC>> {
     // Get all dependencies with atomic left-hand sides
-    let map = map.into_iter().filter( |(k,_)| k.is_atomic());
+    let non_atomic_left_sides = map.into_iter().filter( |(k,_)| k.is_atomic());
     // Filter out non-atomic right-hand sides
-    let map =map.map(|(k,vs)| (k.clone(), vs.into_iter().filter(|v| v.is_atomic()).cloned().collect::<HashSet<_>>()));
+    let non_atomic_right_sides =non_atomic_left_sides.map(|(k,vs)| (k.clone(), vs.into_iter().filter(|v| v.is_atomic()).cloned().collect::<HashSet<_>>()));
     // Filter all entries with empty left-hand sides
-    let map = map.filter(|(_, vs)| vs.is_empty());
-    map.collect()
+    let non_empty_right_sides = non_atomic_right_sides.filter(|(_, vs)| !vs.is_empty());
+    non_empty_right_sides.collect()
 }
