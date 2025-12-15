@@ -1,17 +1,14 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
-use clap::{Error, Parser};
+use clap::Parser;
 use horned_owl::model::{ArcStr, Component};
-use horned_owl::io::ofn::writer::{write, AsFunctional};
-use itertools::Itertools;
-use serde::Serialize;
+use horned_owl::io::ofn::writer::AsFunctional;
 use crate::ontology::processors::annotations::Annotations;
 use crate::dependency::base::{reduce_map, DependencyBuilder};
 use crate::dependency::growth::{remove_super_symbols, GrowthDependency};
 use crate::ontology::io::load_set_ontology;
 use serde_json::json;
-use serde_json::Value;
 use crate::ontology::visitor::AxiomVisitor;
 use indicatif::ProgressIterator;
 pub use crate::cli::base::Runnable;
@@ -45,7 +42,6 @@ impl Runnable<()> for DependencyWriter {
         let raw_dependencies = &GrowthDependency::build_dependencies(set_index.iter());
         let dependencies = reduce_map::<OntologySymbol<ArcStr>, DependencySymbolWithAxioms<OntologySymbol<ArcStr>, &Component<ArcStr>>>(raw_dependencies);
         let cleaned_dependencies = remove_super_symbols(&dependencies, set_index.iter(), |v|v.clone());
-        let serialized_dependencies: HashMap<String, HashSet<String>> = cleaned_dependencies.iter().map(| (k,vs)| (k.get_iri().unwrap().to_string(), vs.iter().map(|v| v.get_symbol().get_iri().unwrap().to_string()).collect())).collect();
         let mut annotations = Annotations::<_>::default();
         let placeholder = ArcStr::from("");
         annotations.visit_components(set_index.iter(), &placeholder);
