@@ -4,7 +4,7 @@ use crate::dependency::base::{DependencyBuilder, SyntaxBasedDependency, reduce_m
 use crate::dependency::symbol::{DependencyMap, ForSymbol, OntologySymbol, SymbolContainer};
 use crate::util::graph::transitive_closure;
 
-pub(crate) struct GrowthDependency {}
+pub struct GrowthDependency {}
 
 
 impl<'a, T: ForIRI + 'a> DependencyBuilder<'a, OntologySymbol<'a, T>, T> for GrowthDependency {
