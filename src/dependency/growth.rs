@@ -138,7 +138,7 @@ fn build_super_map<'a, 'b: 'a, S: ForSymbol, T: ForIRI + 'b, SC: SymbolContainer
         sup_map
     }
 
-pub fn invert_map<'a, 'b: 'a, S: ForSymbol, T: ForIRI + 'b, SC: SymbolContainer<S, &'a Component<T>>>(map: &HashMap<S, HashSet<SC>>) -> HashMap<S, HashSet<SC>> {
+pub fn invert_map<'a, 'b: 'a, S: ForSymbol, T: ForIRI + 'b, SC: SymbolContainer<S, Vec<&'a Component<T>>>>(map: &HashMap<S, HashSet<SC>>) -> HashMap<S, HashSet<SC>> {
     let mut new_map: HashMap<S, HashSet<SC>> = HashMap::new();
     for (k,vset) in map {
         for v in vset {
@@ -146,7 +146,7 @@ pub fn invert_map<'a, 'b: 'a, S: ForSymbol, T: ForIRI + 'b, SC: SymbolContainer<
                 new_map.insert(v.get_symbol().clone(), HashSet::new());
             }
             let l = new_map.get_mut(v.get_symbol()).unwrap();
-            let kc = SC::from_symbol_and_axiom(k.clone(), v.get_underlying().unwrap());
+            let kc = SC::from_symbol_and_axiom(k.clone(), v.get_underlying().unwrap().iter().cloned().collect());
             l.insert(kc);
         }
     }

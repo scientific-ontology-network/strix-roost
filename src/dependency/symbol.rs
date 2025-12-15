@@ -1,8 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 use std::hash::Hash;
-use horned_owl::model::{ArcStr, ClassExpression, ForIRI, ObjectPropertyExpression};
-use crate::util::error::StrixError;
+use horned_owl::model::{ClassExpression, ForIRI, ObjectPropertyExpression};
 
 /// Represents a symbol in an ontology, which can be either a class expression or a role.
 #[derive(Debug, Eq, Clone, Hash, PartialEq)]
