@@ -13,7 +13,7 @@ pub enum OntologySymbol<'a, T: ForIRI> {
 }
 
 impl<'a, T:ForIRI> OntologySymbol<'a, T>{
-    pub(crate) fn get_iri(&self) -> Option<T>{
+    pub fn get_iri(&self) -> Option<T>{
         match self {
             OntologySymbol::CE(ClassExpression::Class(iri)) => {Some(iri.underlying())}
             OntologySymbol::Role(ObjectPropertyExpression::ObjectProperty(iri)) => {Some(iri.underlying())}

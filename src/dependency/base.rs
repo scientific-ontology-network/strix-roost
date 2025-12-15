@@ -329,7 +329,7 @@ pub trait SyntaxBasedDependency<'a, S: ForSymbol, T:ForIRI + 'a>: DependencyBuil
     fn dependencies_from_class_expression(ce: &'a ClassExpression<T>) -> HashSet<(S, S)> where S: ForSymbol;
 }
 
-pub fn reduce_map<'a, T: ForIRI + 'a, S:ForSymbol, SC:SymbolContainer<S, Vec<&'a Component<T>>> >(map: &HashMap<S,HashSet<SC>>) -> HashMap<S, HashSet<SC>> {
+pub fn reduce_map<S:ForSymbol, SC: ForSymbol>(map: &HashMap<S,HashSet<SC>>) -> HashMap<S, HashSet<SC>> {
     // Get all dependencies with atomic left-hand sides
     let non_atomic_left_sides = map.into_iter().filter( |(k,_)| k.is_atomic());
     // Filter out non-atomic right-hand sides
