@@ -1,8 +1,7 @@
 use std::collections::{HashMap, HashSet};
-use std::fmt::{Debug, Display};
+use std::fmt::Debug;
 use std::hash::Hash;
-use horned_owl::model::{ClassExpression, Component, ForIRI, ObjectPropertyExpression};
-use crate::ontology::visitor::AxiomVisitor;
+use horned_owl::model::{ClassExpression, ForIRI, ObjectPropertyExpression};
 
 /// Represents a symbol in an ontology, which can be either a class expression or a role.
 #[derive(Debug, Eq, Clone, Hash, PartialEq)]
@@ -60,7 +59,7 @@ impl<'a,T: ForIRI> ForSymbol for OntologySymbol<'a, T> {
 pub trait SymbolContainer<S: ForSymbol, C>: ForSymbol {
     fn get_symbol(&self) -> &S;
 
-    fn merge_include_information(&self, other: &Self) -> Self{
+    fn merge_include_information(&self, _other: &Self) -> Self{
         self.clone()
     }
 
@@ -96,12 +95,6 @@ impl<C> SymbolContainer<StringSymbol, C> for StringSymbol {
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub struct DependencySymbol<S> where S: Hash + Eq + PartialEq + Debug + Clone {
     symbol: S,
-}
-
-impl<S: ForSymbol> DependencySymbol<S> {
-    pub(crate) fn new(symbol: S) -> Self {
-        Self { symbol }
-    }
 }
 
 impl<S: ForSymbol> ForSymbol for DependencySymbol<S> {
@@ -160,4 +153,4 @@ impl<S: ForSymbol, Ax:  Hash + Eq + PartialEq + Debug + Clone> SymbolContainer<S
     }
 }
 
-pub type DependencyMap<S: ForSymbol, D> = HashMap<S, HashSet<D>>;
+pub type DependencyMap<S, D> = HashMap<S, HashSet<D>>;

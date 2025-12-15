@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use horned_owl::model::{Annotation, AnnotationProperty, AnnotationSubject, AnnotationValue, ForIRI, Literal, IRI};
+use horned_owl::model::{Annotation, AnnotationSubject, AnnotationValue, ForIRI};
 use crate::ontology::visitor::AxiomVisitor;
 use crate::iris::iao::DEFINITION;
 use crate::iris::rdfs::RDFS_LABEL;

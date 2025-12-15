@@ -1,9 +1,6 @@
 use std::collections::{HashMap, HashSet};
-use std::fmt::Display;
-use std::hash::Hash;
 use clap::{Error, Parser};
-use horned_owl::model::{ArcStr, ForIRI, Component};
-use horned_owl::ontology::indexed::ForIndex;
+use horned_owl::model::{ArcStr, Component};
 use itertools::Itertools;
 use serde::Serialize;
 use crate::ontology::processors::annotations::Annotations;

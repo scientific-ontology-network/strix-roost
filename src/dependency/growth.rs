@@ -1,6 +1,4 @@
 use std::collections::{HashMap, HashSet};
-use std::fmt::Debug;
-use std::hash::Hash;
 use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, EquivalentClasses, EquivalentObjectProperties, ForIRI, SubClassOf, SubObjectPropertyExpression};
 use crate::dependency::base::{DependencyBuilder, SyntaxBasedDependency, reduce_map};
 use crate::dependency::symbol::{DependencyMap, ForSymbol, OntologySymbol, SymbolContainer};

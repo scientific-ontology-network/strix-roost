@@ -1,7 +1,5 @@
 use std::collections::{HashMap, HashSet};
-use horned_owl::model::{Component, ForIRI};
-use itertools::Itertools;
-use crate::dependency::symbol::{ForSymbol, OntologySymbol, SymbolContainer};
+use crate::dependency::symbol::{ForSymbol, SymbolContainer};
 
 /// Compute the transitive closure of a directed graph.
 /// Input: adjacency list as HashMap<T, HashSet<T>>.
@@ -64,8 +62,8 @@ fn dfs_with_memo<S: ForSymbol, C, SC: SymbolContainer<S, C> + Clone>(
 
 #[cfg(test)]
 mod tests {
-    use horned_owl::model::ArcStr;
-    use crate::dependency::symbol::{DependencySymbol, StringSymbol};
+    
+    use crate::dependency::symbol::StringSymbol;
     use super::*;
 
     #[test]

@@ -1,13 +1,9 @@
-use std::collections::{HashMap, HashSet};
-use std::fmt::Display;
+use std::collections::HashMap;
 use std::time::Duration;
 use horned_owl::model::ForIRI;
-use horned_owl::ontology::indexed::ForIndex;
-use serde::{Deserialize, Serialize};
 use reqwest::Error;
-use reqwest::header::USER_AGENT;
 use serde_json::json;
-use crate::dependency::symbol::{ForSymbol, OntologySymbol, SymbolContainer};
+use crate::dependency::symbol::{OntologySymbol, SymbolContainer};
 
 pub(crate) fn ask<'a, C, SC:SymbolContainer<OntologySymbol<'a, T>, C>, T: ForIRI + 'a>(a: &T, depends_on: &Vec<SC>, definitions: &HashMap<T, String>, labels: &HashMap<T, String> ) -> Result<HashMap<SC, bool>, Error> {
     let request_url = "http://localhost:11434/api/generate";

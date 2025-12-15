@@ -3,13 +3,10 @@
 //! ontological components such as class and property symbols.
 
 use std::collections::{HashMap, HashSet};
-use std::fmt::Debug;
-use std::hash::Hash;
 use horned_owl::model::SubClassOf as SCO;
 use horned_owl::model::*;
 use itertools::Itertools;
-use crate::dependency::symbol::{DependencyMap, ForSymbol, OntologySymbol, SymbolContainer};
-use crate::ontology::visitor::AxiomVisitor;
+use crate::dependency::symbol::{DependencyMap, ForSymbol, SymbolContainer};
 
 
 /// Trait for building dependency relationships between ontological components
