@@ -1,14 +1,17 @@
 use std::collections::HashMap;
 use std::time::Duration;
 use horned_owl::model::ForIRI;
-use reqwest::Error;
 use serde_json::json;
 use crate::dependency::symbol::{OntologySymbol, SymbolContainer};
+use crate::util::error::StrixError;
 
-pub(crate) fn ask<'a, C, SC:SymbolContainer<OntologySymbol<'a, T>, C>, T: ForIRI + 'a>(a: &T, depends_on: &Vec<SC>, definitions: &HashMap<T, String>, labels: &HashMap<T, String> ) -> Result<HashMap<SC, bool>, Error> {
+pub(crate) fn ask<'a, C, SC:SymbolContainer<OntologySymbol<'a, T>, C>, T: ForIRI + 'a>(a: &T, depends_on: &Vec<SC>, definitions: &HashMap<T, String>, labels: &HashMap<T, String> ) -> Result<HashMap<SC, bool>, StrixError> {
     let request_url = "http://localhost:11434/api/generate";
 
-    let client = reqwest::blocking::Client::builder().timeout(Duration::from_secs(3000)).build()?;
+    let client = match reqwest::blocking::Client::builder().timeout(Duration::from_secs(3000)).build() {
+        Ok(v) => v,
+        Err(e) => return Err(StrixError::Error {message: e.to_string() }),
+    };
     let label_a = labels.get(&a).unwrap_or(&a.to_string()).clone();
     let def_a = definitions.get(&a).unwrap_or(&a.to_string()).clone();
     let mut prompt = format!["Here is an ontology class and its definition:\n \
@@ -39,19 +42,25 @@ pub(crate) fn ask<'a, C, SC:SymbolContainer<OntologySymbol<'a, T>, C>, T: ForIRI
                 let response_text = r.text().unwrap();
                 let response_json: serde_json::Value = serde_json::from_str(&response_text).unwrap();
                 let answers = response_json.get("response").unwrap_or(&serde_json::Value::Null).to_string();
-                let lines: Vec<_> = answers.replace("\"", "").split("\\n").map(|x| {
+                let mut lines = Vec::new();
+                for x in answers.replace("\"", "").split("\\n") {
                     let y: Vec<_> = x.split(":").collect();
-                    match y[1].trim() {
-                        "true" => true,
-                        "false" => false,
-                        _ => panic!("Could not process response {answers}. {x} is neither 'true' nor 'false'!"),
+                    let good = y[1].trim();
+                    if good == "true" {
+                        lines.push(true);
+                    } else if good == "false" {
+                        lines.push(false);
+                    } else {
+                        return Err(StrixError::Error {message:format!("Could not process response {answers}. {x} is neither 'true' nor 'false'!")});
                     }
+                }
+                match lines.len() == depends_on.len() {
+                    true => Ok(depends_on.iter().cloned().zip(lines).collect()),
+                    false => Err(StrixError::Error {message:format!("Length of symbols does not match list returned by LLM ({}!={})",lines.len(), depends_on.len())})
+                }
 
-                }).collect();
-                assert_eq!(lines.len(), depends_on.len());
-                Ok(depends_on.iter().cloned().zip(lines).collect())
             },
-            Err(e) => {Err(e)}
+            Err(e) => {Err(StrixError::Error {message: e.to_string()})}
         }
     }
 }
