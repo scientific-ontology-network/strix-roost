@@ -15,7 +15,7 @@ pub trait DependencyBuilder<'a, S: ForSymbol, T:ForIRI + 'a> {
     ///
     /// # Arguments
     /// * `ontology_iter` - An iterator over annotated ontology components
-    fn build_dependencies<SC: SymbolContainer<S, &'a Component<T>>> (
+    fn build_dependencies<SC: SymbolContainer<S, Vec<&'a Component<T>>>> (
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
     ) -> DependencyMap<S, SC>;
 }
@@ -29,7 +29,7 @@ pub trait SyntaxBasedDependency<'a, S: ForSymbol, T:ForIRI + 'a>: DependencyBuil
     ///
     /// # Returns
     /// A vector of dependency pairs representing relationships between ontological elements
-    fn dependencies_from_components<SC: SymbolContainer<S, &'a Component<T>>>
+    fn dependencies_from_components<SC: SymbolContainer<S, Vec<&'a Component<T>>>>
     (
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
     ) -> HashSet<(S, SC)> where {
@@ -122,7 +122,7 @@ pub trait SyntaxBasedDependency<'a, S: ForSymbol, T:ForIRI + 'a>: DependencyBuil
                     Self::dependency_from_annotation_property_range(apr)
                 }
                 _ => HashSet::new(),
-            }).into_iter().map(|(k,v)| (k,SC::from_symbol_and_axiom(v, &ce.component)))
+            }).into_iter().map(|(k,v)| (k,SC::from_symbol_and_axiom(v, vec![&ce.component])))
             )
             .collect()
     }
@@ -329,7 +329,7 @@ pub trait SyntaxBasedDependency<'a, S: ForSymbol, T:ForIRI + 'a>: DependencyBuil
     fn dependencies_from_class_expression(ce: &'a ClassExpression<T>) -> HashSet<(S, S)> where S: ForSymbol;
 }
 
-pub fn reduce_map<'a, T: ForIRI + 'a, S:ForSymbol, SC:SymbolContainer<S, &'a Component<T>> >(map: &HashMap<S,HashSet<SC>>) -> HashMap<S, HashSet<SC>> {
+pub fn reduce_map<'a, T: ForIRI + 'a, S:ForSymbol, SC:SymbolContainer<S, Vec<&'a Component<T>>> >(map: &HashMap<S,HashSet<SC>>) -> HashMap<S, HashSet<SC>> {
     // Get all dependencies with atomic left-hand sides
     let non_atomic_left_sides = map.into_iter().filter( |(k,_)| k.is_atomic());
     // Filter out non-atomic right-hand sides

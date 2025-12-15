@@ -47,7 +47,8 @@ impl Runnable<()> for Print {
     fn run(&self) {
         let onto = load_set_ontology(self.path.to_str().unwrap());
         let set_index = onto.i();
-        let dependencies = reduce_map::<ArcStr, OntologySymbol<ArcStr>, DependencySymbolWithAxioms<OntologySymbol<ArcStr>, &Component<ArcStr>>>(&GrowthDependency::build_dependencies(set_index.iter()));
+        let raw_dependencies = &GrowthDependency::build_dependencies(set_index.iter());
+        let dependencies = reduce_map::<ArcStr, OntologySymbol<ArcStr>, DependencySymbolWithAxioms<OntologySymbol<ArcStr>, &Component<ArcStr>>>(raw_dependencies);
         let cleaned_dependencies = remove_super_symbols(&dependencies, set_index.iter(), |v|v.clone());
         let serialized_dependencies: HashMap<String, HashSet<String>> = cleaned_dependencies.iter().map(| (k,vs)| (k.get_iri().unwrap().to_string(), vs.iter().map(|v| v.get_symbol().get_iri().unwrap().to_string()).collect())).collect();
         let mut annotations = Annotations::<_>::default();

@@ -1,7 +1,8 @@
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 use std::hash::Hash;
-use horned_owl::model::{ClassExpression, ForIRI, ObjectPropertyExpression};
+use horned_owl::model::{ArcStr, ClassExpression, ForIRI, ObjectPropertyExpression};
+use crate::util::error::StrixError;
 
 /// Represents a symbol in an ontology, which can be either a class expression or a role.
 #[derive(Debug, Eq, Clone, Hash, PartialEq)]
@@ -59,6 +60,10 @@ impl<'a,T: ForIRI> ForSymbol for OntologySymbol<'a, T> {
 pub trait SymbolContainer<S: ForSymbol, C>: ForSymbol {
     fn get_symbol(&self) -> &S;
 
+    fn get_underlying(&self) -> Option<&C>{
+        None
+    }
+
     fn merge_include_information(&self, _other: &Self) -> Self{
         self.clone()
     }
@@ -68,6 +73,7 @@ pub trait SymbolContainer<S: ForSymbol, C>: ForSymbol {
     fn from_symbol_and_axiom(x: S, _c: C) -> Self{
         Self::from(x)
     }
+
 }
 
 impl<'a, T: ForIRI, C> SymbolContainer<OntologySymbol<'a, T>, C> for OntologySymbol<'a, T> {
@@ -132,9 +138,13 @@ impl<S: ForSymbol, C: Hash + Eq + PartialEq + Debug + Clone> ForSymbol for Depen
     }
 }
 
-impl<S: ForSymbol, Ax:  Hash + Eq + PartialEq + Debug + Clone> SymbolContainer<S, Ax> for DependencySymbolWithAxioms<S, Ax> {
+impl<S: ForSymbol, Ax:  Hash + Eq + PartialEq + Debug + Clone> SymbolContainer<S, Vec<Ax>> for DependencySymbolWithAxioms<S, Ax> {
     fn get_symbol(&self) -> &S {
         &self.symbol
+    }
+
+    fn get_underlying(&self) -> Option<&Vec<Ax>> {
+        Some(&self.axioms)
     }
 
     fn merge_include_information(&self, other: &Self) -> Self{
@@ -148,8 +158,8 @@ impl<S: ForSymbol, Ax:  Hash + Eq + PartialEq + Debug + Clone> SymbolContainer<S
         Self { symbol: x, axioms: vec![] }
     }
 
-    fn from_symbol_and_axiom(x: S, _c: Ax) -> Self {
-        Self {symbol: x, axioms:vec![_c]}
+    fn from_symbol_and_axiom(x: S, _c: Vec<Ax>) -> Self {
+        Self {symbol: x, axioms:_c}
     }
 }
 
