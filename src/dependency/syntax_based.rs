@@ -338,71 +338,105 @@ pub trait SyntaxBasedDependency<T:ForIRI>: DependencyBuilder<T> {
         }
     }
 
+    // [x] = C1 & ... & Cn
+    // Extracts dependencies from object intersection of class expressions
     fn dependencies_from_object_intersection_of<'a>(_x: &'a ClassExpression<T>, _ces: &'a Vec<ClassExpression<T>>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_object_union_of<'a>(_x: &'a ClassExpression<T>,_ces: &'a Vec<ClassExpression<T>>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = C1 v ... v Cn
+    // Extracts dependencies from object union of class expressions
+    fn dependencies_from_object_union_of<'a>(_x: &'a ClassExpression<T>, _ces: &'a Vec<ClassExpression<T>>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_object_complement_of<'a>(_x: &'a ClassExpression<T>,_ce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = not [ce]
+    // Extracts dependencies from object complement of a class expression
+    fn dependencies_from_object_complement_of<'a>(_x: &'a ClassExpression<T>, _ce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_object_one_of<'a>(_x: &'a ClassExpression<T>,_is: &'a Vec<Individual<T>>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = {i1, ..., in}
+    // Extracts dependencies from object one-of enumeration of individuals
+    fn dependencies_from_object_one_of<'a>(_x: &'a ClassExpression<T>, _is: &'a Vec<Individual<T>>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_object_some_values_from<'a>(_x: &'a ClassExpression<T>,_ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = some [ope].[ce]
+    // Extracts dependencies from existential restriction (object some values from)
+    fn dependencies_from_object_some_values_from<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_object_all_values_from<'a>(_x: &'a ClassExpression<T>,_ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = all [ope].[ce]
+    // Extracts dependencies from universal restriction (object all values from)
+    fn dependencies_from_object_all_values_from<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_object_has_value<'a>(_x: &'a ClassExpression<T>,_ope: &'a ObjectPropertyExpression<T>, _i: &'a Individual<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = [ope] value [i]
+    // Extracts dependencies from object has value restriction
+    fn dependencies_from_object_has_value<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _i: &'a Individual<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_object_has_self<'a>(_x: &'a ClassExpression<T>,_ope: &ObjectPropertyExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = [ope] Self
+    // Extracts dependencies from object has self restriction
+    fn dependencies_from_object_has_self<'a>(_x: &'a ClassExpression<T>, _ope: &ObjectPropertyExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_object_min_cardinality<'a>(_x: &'a ClassExpression<T>,_ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = >= n [ope].[ce]
+    // Extracts dependencies from minimum cardinality restriction
+    fn dependencies_from_object_min_cardinality<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_object_max_cardinality<'a>(_x: &'a ClassExpression<T>,_ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = <= n [ope].[ce]
+    // Extracts dependencies from maximum cardinality restriction
+    fn dependencies_from_object_max_cardinality<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_object_exact_cardinality<'a>(_x: &'a ClassExpression<T>,_ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = = n [ope].[ce]
+    // Extracts dependencies from exact cardinality restriction
+    fn dependencies_from_object_exact_cardinality<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_data_some_values_from<'a>(_x: &'a ClassExpression<T>,_dp: &'a DataProperty<T>, _dr: &'a DataRange<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = some [dp].[dr]
+    // Extracts dependencies from data some values from restriction
+    fn dependencies_from_data_some_values_from<'a>(_x: &'a ClassExpression<T>, _dp: &'a DataProperty<T>, _dr: &'a DataRange<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_data_all_values_from<'a>(_x: &'a ClassExpression<T>,_dp: &'a DataProperty<T>, _dr: &'a DataRange<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = all [dp].[dr]
+    // Extracts dependencies from data all values from restriction
+    fn dependencies_from_data_all_values_from<'a>(_x: &'a ClassExpression<T>, _dp: &'a DataProperty<T>, _dr: &'a DataRange<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_data_has_value<'a>(_x: &'a ClassExpression<T>,_dp: &'a DataProperty<T>, _l: &'a Literal<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = [dp] value [l]
+    // Extracts dependencies from data has value restriction
+    fn dependencies_from_data_has_value<'a>(_x: &'a ClassExpression<T>, _dp: &'a DataProperty<T>, _l: &'a Literal<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_data_min_cardinality<'a>(_x: &'a ClassExpression<T>,_dp: &'a DataProperty<T>, _dr: &'a DataRange<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = >= n [dp].[dr]
+    // Extracts dependencies from data minimum cardinality restriction
+    fn dependencies_from_data_min_cardinality<'a>(_x: &'a ClassExpression<T>, _dp: &'a DataProperty<T>, _dr: &'a DataRange<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_data_max_cardinality<'a>(_x: &'a ClassExpression<T>,_dp: &'a DataProperty<T>, _dr: &'a DataRange<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = <= n [dp].[dr]
+    // Extracts dependencies from data maximum cardinality restriction
+    fn dependencies_from_data_max_cardinality<'a>(_x: &'a ClassExpression<T>, _dp: &'a DataProperty<T>, _dr: &'a DataRange<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_data_exact_cardinality<'a>(_x: &'a ClassExpression<T>,_dp: &'a DataProperty<T>, _dr: &'a DataRange<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    // [x] = = n [dp].[dr]
+    // Extracts dependencies from data exact cardinality restriction
+    fn dependencies_from_data_exact_cardinality<'a>(_x: &'a ClassExpression<T>, _dp: &'a DataProperty<T>, _dr: &'a DataRange<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
