@@ -1,9 +1,10 @@
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use core::cmp::Eq;
-use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, EquivalentClasses, EquivalentObjectProperties, ForIRI, SubClassOf, SubObjectPropertyExpression};
-use crate::dependency::base::{DependencyBuilder, SyntaxBasedDependency, reduce_map, ComplexDependencyMap, DependencyMap};
+use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, EquivalentClasses, EquivalentObjectProperties, ForIRI, ObjectPropertyExpression, ObjectPropertyRange, SubClassOf, SubObjectPropertyExpression};
+use crate::dependency::base::{DependencyBuilder, ComplexDependencyMap, DependencyMap};
 use crate::dependency::symbol::{Term, Symbol};
+use crate::dependency::syntax_based::{reduce_map, SyntaxBasedDependency};
 use crate::util::graph::transitive_closure;
 
 pub struct GrowthDependency {}
@@ -26,40 +27,45 @@ impl<T: ForIRI> DependencyBuilder<T> for GrowthDependency {
 }
 
 impl<T: ForIRI> SyntaxBasedDependency<T> for GrowthDependency {
-    fn dependency_from_subsumption(_sco: &SubClassOf<T>) -> HashSet<(Term<T>, Term<T>)> {
-        let a: HashSet<_> = HashSet::from_iter([(Term::CE(&_sco.sub), Term::CE(&_sco.sup))]);
-        let b: HashSet<_> = Self::dependencies_from_class_expression(&_sco.sub);
-        let c: HashSet<_> = Self::dependencies_from_class_expression(&_sco.sup);
-        a.into_iter().chain(b.into_iter().chain(c)).collect()
+
+    fn dependencies_from_object_intersection_of<'a>(x: &'a ClassExpression<T>, ces: &'a Vec<ClassExpression<T>>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        ces.into_iter()
+            .flat_map(|ce2| {
+                [(Term::CE(x), Term::CE(ce2))]
+                    .into_iter()
+                    .chain(Self::dependencies_from_class_expression(ce2))
+            })
+            .collect()
     }
 
-    fn dependencies_from_class_expression(ce: &ClassExpression<T>) -> HashSet<(Term<T>, Term<T>)> {
-        match ce {
-            ClassExpression::ObjectIntersectionOf(exprs) => exprs
+    fn dependencies_from_object_union_of<'a>(x: &'a ClassExpression<T>, ces: &'a Vec<ClassExpression<T>>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        ces.into_iter().flat_map(|ce2| {
+            [(Term::CE(ce2), Term::CE(x))]
                 .into_iter()
-                .flat_map(|ce2| {
-                    [(Term::CE(ce), Term::CE(ce2))]
-                        .into_iter()
-                        .chain(Self::dependencies_from_class_expression(ce2))
-                })
-                .collect(),
-            ClassExpression::ObjectUnionOf(exprs) => exprs
-                .into_iter()
-                .flat_map(|ce2| {
-                    [(Term::CE(ce2), Term::CE(ce))]
-                        .into_iter()
-                        .chain(Self::dependencies_from_class_expression(ce2))
-                })
-                .collect(),
-            ClassExpression::ObjectSomeValuesFrom { ope, bce } => [
-                (Term::CE(ce), Term::CE(bce)),
-                (Term::CE(ce), Term::Role(ope)),
-            ]
-                .into_iter()
-                .chain(Self::dependencies_from_class_expression(bce))
-                .collect(),
-            _ => HashSet::new(),
+                .chain(Self::dependencies_from_class_expression(ce2))
+        })
+            .collect()
+    }
+
+    fn dependencies_from_object_some_values_from<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        [
+            (Term::CE(x), Term::CE(bce)),
+            (Term::CE(x), Term::Role(ope)),
+        ]
+            .into_iter()
+            .chain(Self::dependencies_from_class_expression(bce))
+            .collect()
+    }
+
+    fn dependencies_from_object_property_expression(ope: &ObjectPropertyExpression<T>) -> HashSet<(Term<T>, Term<T>)> {
+        match ope {
+            ObjectPropertyExpression::ObjectProperty(op) => { HashSet::new() },
+            ObjectPropertyExpression::InverseObjectProperty(op) => { panic!("Inverse object properties are not supported in syntactic growth dependency yet") },
         }
+    }
+
+    fn dependency_from_object_property_range(_opr: &ObjectPropertyRange<T>) -> HashSet<(Term<T>, Term<T>)> {
+        [(Term::CE(&_opr.ce),Term::Role(&_opr.ope))].into_iter().chain(Self::dependencies_from_class_expression(&_opr.ce)).chain(Self::dependencies_from_object_property_expression(&_opr.ope)).collect()
     }
 }
 

@@ -6,14 +6,14 @@ use clap::Parser;
 use horned_owl::model::{ArcStr, Component};
 use horned_owl::io::ofn::writer::AsFunctional;
 use crate::ontology::processors::annotations::Annotations;
-use crate::dependency::base::{reduce_map, DependencyBuilder};
+use crate::dependency::base::{DependencyBuilder};
 use crate::dependency::growth::{remove_super_symbols, GrowthDependency};
 use crate::ontology::io::load_set_ontology;
 use serde_json::json;
 use crate::ontology::visitor::AxiomVisitor;
 use indicatif::ProgressIterator;
 pub use crate::cli::base::Runnable;
-use crate::dependency::empty::EmptinessDependency;
+use crate::dependency::empty::{SemanticEmptinessDependency};
 use crate::dependency::llm::ask;
 use crate::dependency::symbol::{Term};
 
@@ -29,18 +29,16 @@ pub struct DependencyWriter {
     in_path: std::path::PathBuf,
 
     #[arg(short, long)]
-    out_path: std::path::PathBuf,
-
-
-
-    #[arg(short, long)]
     llm: Option<bool>,
 }
 
 
 impl Runnable<()> for DependencyWriter {
     fn run(&self) {
-        let path = Path::new(&self.out_path);
+        let path = Path::new(&self.in_path);
+        let fname = format!("{}_dep_{}.json", path.file_stem().unwrap().to_str().unwrap(), self.method);
+        let path = path.with_file_name(fname);
+        println!("Writing results to {:?}", path);
         let file = File::create(path).expect("Failed to create file");
         let onto = load_set_ontology(self.in_path.to_str().unwrap());
         let set_index = onto.i();
@@ -48,7 +46,7 @@ impl Runnable<()> for DependencyWriter {
         if self.method == "growth" {
             dependencies = GrowthDependency::build_dependencies(set_index.iter());
         } else if self.method == "emptiness" {
-            dependencies = EmptinessDependency::build_dependencies(set_index.iter());
+            dependencies = SemanticEmptinessDependency::build_dependencies(set_index.iter());
         } else {
             panic!("Unknown method {}", self.method);
         }
