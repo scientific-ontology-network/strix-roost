@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use core::cmp::Eq;
-use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, EquivalentClasses, EquivalentObjectProperties, ForIRI, ObjectPropertyExpression, ObjectPropertyRange, SubClassOf, SubObjectPropertyExpression};
+use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, EquivalentClasses, EquivalentObjectProperties, ForIRI, ObjectPropertyExpression, ObjectPropertyRange, SubObjectPropertyExpression};
 use crate::dependency::base::{DependencyBuilder, ComplexDependencyMap, DependencyMap};
 use crate::dependency::symbol::{Term, Symbol};
 use crate::dependency::syntax_based::{reduce_map, SyntaxBasedDependency};
@@ -57,14 +57,14 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for GrowthDependency {
             .collect()
     }
 
-    fn dependencies_from_object_property_expression(ope: &ObjectPropertyExpression<T>) -> HashSet<(Term<T>, Term<T>)> {
+    fn dependencies_from_object_property_expression(ope: &ObjectPropertyExpression<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         match ope {
-            ObjectPropertyExpression::ObjectProperty(op) => { HashSet::new() },
-            ObjectPropertyExpression::InverseObjectProperty(op) => { panic!("Inverse object properties are not supported in syntactic growth dependency yet") },
+            ObjectPropertyExpression::ObjectProperty(_op) => { HashSet::new() },
+            ObjectPropertyExpression::InverseObjectProperty(_op) => { panic!("Inverse object properties are not supported in syntactic growth dependency yet") },
         }
     }
 
-    fn dependency_from_object_property_range(_opr: &ObjectPropertyRange<T>) -> HashSet<(Term<T>, Term<T>)> {
+    fn dependency_from_object_property_range(_opr: &ObjectPropertyRange<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         [(Term::CE(&_opr.ce),Term::Role(&_opr.ope))].into_iter().chain(Self::dependencies_from_class_expression(&_opr.ce)).chain(Self::dependencies_from_object_property_expression(&_opr.ope)).collect()
     }
 }
@@ -78,7 +78,7 @@ fn remove_targets<'a, S: Hash + Eq + Clone, C: Clone>(dep_map: &HashMap<S, HashM
             Some(k_supers) => k_supers.keys().map(|x| x).collect()
         };
         let irrelevant_dependencies: HashSet<&S> = supers_of_classes_in_v.union(&supers_of_k).map(|v| *v).collect();
-        let relevant_dependencies: HashMap<&S,&C> = v.iter().filter(|(x,c)| !irrelevant_dependencies.contains(x)).collect();
+        let relevant_dependencies: HashMap<&S,&C> = v.iter().filter(|(x,_c)| !irrelevant_dependencies.contains(x)).collect();
         let rd: HashMap<S,C> = relevant_dependencies.iter().map(|(&s,&c)| (s.clone(), c.clone())).collect();
         new_map.insert(k.clone(), rd);
     }

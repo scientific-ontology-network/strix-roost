@@ -3,15 +3,12 @@
 //! ontological components such as class and property symbols.
 
 use std::collections::{HashMap, HashSet};
-use horned_owl::model::SubClassOf as SCO;
 use horned_owl::model::*;
-use horned_owl::ontology::indexed::ForIndex;
-use itertools::Itertools;
 use crate::dependency::symbol::{Symbol, Term};
 
 
-pub type ComplexDependencyMap<'a, T: ForIRI, C> = HashMap<Term<'a, T>, HashMap<Term<'a, T>, C>>;
-pub type DependencyMap<T: ForIRI, C> = HashMap<Symbol<T>, HashMap<Symbol<T>, C>>;
+pub type ComplexDependencyMap<'a, T, C> = HashMap<Term<'a, T>, HashMap<Term<'a, T>, C>>;
+pub type DependencyMap<T, C> = HashMap<Symbol<T>, HashMap<Symbol<T>, C>>;
 
 fn get_symbol<T: ForIRI>(t: Term<T>) -> Symbol<T> {
     match t {

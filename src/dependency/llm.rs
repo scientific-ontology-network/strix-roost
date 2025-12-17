@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::time::Duration;
-use horned_owl::model::{Component, ForIRI};
+use horned_owl::model::ForIRI;
 use serde_json::json;
-use crate::dependency::symbol::{Symbol, Term};
+use crate::dependency::symbol::Symbol;
 use crate::util::error::StrixError;
 
 pub(crate) fn ask<'a, C: Clone, T: ForIRI + 'a>(a: &T, depends_on: &HashMap<Symbol<T>, C>, definitions: &HashMap<T, String>, labels: &HashMap<T, String> ) -> Result<HashMap<Symbol<T>, (C, bool)>, StrixError> {

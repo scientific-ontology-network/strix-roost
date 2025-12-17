@@ -1,14 +1,11 @@
-use std::any::Any;
 use std::collections::{HashMap, HashSet};
-use horned_owl::model::{AnnotatedComponent, Build, Class, ClassExpression, Component, ForIRI, MutableOntology, ObjectPropertyExpression, ObjectPropertyRange, SubClassOf, SubObjectPropertyOf};
+use horned_owl::model::{AnnotatedComponent, Build, Class, ClassExpression, Component, ForIRI, MutableOntology, ObjectPropertyExpression, ObjectPropertyRange, SubClassOf};
 use horned_owl::ontology::indexed::ForIndex;
 use horned_owl::ontology::set::SetOntology;
 use horned_owl::vocab::OWL;
 use indicatif::ProgressIterator;
-use whelk::whelk::model::AtomicConcept;
-use crate::dependency::base::{DependencyBuilder, DependencyMap, ComplexDependencyMap};
+use crate::dependency::base::{DependencyBuilder, DependencyMap};
 use crate::dependency::symbol::{Term, Symbol};
-use crate::util::graph::transitive_closure;
 use whelk::whelk::owl::translate_ontology;
 use whelk::whelk::reasoner::assert;
 use crate::dependency::syntax_based::SyntaxBasedDependency;
@@ -64,7 +61,7 @@ impl<T:ForIRI> DependencyBuilder<T> for SemanticEmptinessDependency {
 pub struct SyntacticEmptinessDependency {}
 
 impl<T:ForIRI> DependencyBuilder<T> for SyntacticEmptinessDependency {
-    fn build_dependencies<'a>(ontology_iter: impl Iterator<Item=&'a AnnotatedComponent<T>>) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>>
+    fn build_dependencies<'a>(_ontology_iter: impl Iterator<Item=&'a AnnotatedComponent<T>>) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>>
     where
         T: 'a
     {
@@ -74,16 +71,16 @@ impl<T:ForIRI> DependencyBuilder<T> for SyntacticEmptinessDependency {
 
 impl<T:ForIRI> SyntaxBasedDependency<T> for SyntacticEmptinessDependency {
     
-    fn dependencies_from_object_property_expression(ope: &ObjectPropertyExpression<T>) -> HashSet<(Term<T>, Term<T>)> {
+    fn dependencies_from_object_property_expression(ope: &ObjectPropertyExpression<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         match ope {
-            ObjectPropertyExpression::ObjectProperty(op) => { HashSet::new() },
-            ObjectPropertyExpression::InverseObjectProperty(op) => { panic!("Inverse object properties are not supported in syntactic emptiness dependency yet") },
+            ObjectPropertyExpression::ObjectProperty(_op) => { HashSet::new() },
+            ObjectPropertyExpression::InverseObjectProperty(_op) => { panic!("Inverse object properties are not supported in syntactic emptiness dependency yet") },
         }
     }
 
 
     // X = range(r)
-    fn dependency_from_object_property_range(_opr: &ObjectPropertyRange<T>) -> HashSet<(Term<T>, Term<T>)> {
+    fn dependency_from_object_property_range(_opr: &ObjectPropertyRange<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         [
             (Term::CE(&_opr.ce),Term::Role(&_opr.ope)), // X -> r
             (Term::Role(&_opr.ope), Term::CE(&_opr.ce)) // r -> X

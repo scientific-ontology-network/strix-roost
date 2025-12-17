@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
 use clap::Parser;
-use horned_owl::model::{ArcStr, Component};
+use horned_owl::model::ArcStr;
 use horned_owl::io::ofn::writer::AsFunctional;
 use crate::ontology::processors::annotations::Annotations;
 use crate::dependency::base::{DependencyBuilder};
@@ -15,7 +15,6 @@ use indicatif::ProgressIterator;
 pub use crate::cli::base::Runnable;
 use crate::dependency::empty::{SemanticEmptinessDependency};
 use crate::dependency::llm::ask;
-use crate::dependency::symbol::{Term};
 
 
 /// Search for a pattern in a file and display the lines that contain it.
