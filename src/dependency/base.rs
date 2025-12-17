@@ -5,23 +5,35 @@
 use std::collections::{HashMap, HashSet};
 use horned_owl::model::SubClassOf as SCO;
 use horned_owl::model::*;
+use horned_owl::ontology::indexed::ForIndex;
 use itertools::Itertools;
-use crate::dependency::symbol::{DependencyMap, ForSymbol, SymbolContainer};
+use crate::dependency::symbol::{Symbol, Term};
 
+
+pub type ComplexDependencyMap<'a, T: ForIRI, C> = HashMap<Term<'a, T>, HashMap<Term<'a, T>, C>>;
+pub type DependencyMap<T: ForIRI, C> = HashMap<Symbol<T>, HashMap<Symbol<T>, C>>;
+
+fn get_symbol<T: ForIRI>(t: Term<T>) -> Symbol<T> {
+    match t {
+        Term::CE(ClassExpression::Class(Class(iri))) => Symbol::Class(iri.underlying()),
+        Term::Role(ObjectPropertyExpression::ObjectProperty(ObjectProperty(iri))) => Symbol::Role(iri.underlying()),
+        _ => panic!("Trying to symbolize non-atomic expression: {t:?}")
+    }
+}
 
 /// Trait for building dependency relationships between ontological components
-pub trait DependencyBuilder<'a, S: ForSymbol, T:ForIRI + 'a> {
+pub trait DependencyBuilder<T:ForIRI> {
     /// Constructs a dependency map from an iterator of annotated components
     ///
     /// # Arguments
     /// * `ontology_iter` - An iterator over annotated ontology components
-    fn build_dependencies<SC: SymbolContainer<S, Vec<&'a Component<T>>>> (
+    fn build_dependencies<'a> (
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-    ) -> DependencyMap<S, SC>;
+    ) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>> where T: 'a;
 }
 
 /// Trait for analyzing syntax-based dependencies in ontological components
-pub trait SyntaxBasedDependency<'a, S: ForSymbol, T:ForIRI + 'a>: DependencyBuilder<'a, S, T> {
+pub trait SyntaxBasedDependency<T:ForIRI>: DependencyBuilder<T> {
     /// Extracts dependency pairs from ontology components based on their syntactic structure
     ///
     /// # Arguments
@@ -29,10 +41,10 @@ pub trait SyntaxBasedDependency<'a, S: ForSymbol, T:ForIRI + 'a>: DependencyBuil
     ///
     /// # Returns
     /// A vector of dependency pairs representing relationships between ontological elements
-    fn dependencies_from_components<SC: SymbolContainer<S, Vec<&'a Component<T>>>>
+    fn dependencies_from_components<'a>
     (
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-    ) -> HashSet<(S, SC)> where {
+    ) -> Vec<(Term<'a, T>, Term<'a, T>, HashSet<&'a Component<T>>)> where {
         ontology_iter
             .flat_map(|ce| (match &ce.component {
                 Component::SubClassOf(ref sco) => Self::dependency_from_subsumption(sco),
@@ -122,7 +134,7 @@ pub trait SyntaxBasedDependency<'a, S: ForSymbol, T:ForIRI + 'a>: DependencyBuil
                     Self::dependency_from_annotation_property_range(apr)
                 }
                 _ => HashSet::new(),
-            }).into_iter().map(|(k,v)| (k,SC::from_symbol_and_axiom(v, vec![&ce.component])))
+            }).into_iter().map(|(k,v)| (k, v, [&ce.component].iter().cloned().collect()))
             )
             .collect()
     }
@@ -132,15 +144,15 @@ pub trait SyntaxBasedDependency<'a, S: ForSymbol, T:ForIRI + 'a>: DependencyBuil
     // and returns a vector of dependency pairs.
 
     /// Extracts dependencies from subsumption relationships (SubClassOf axioms)
-    fn dependency_from_subsumption(_sco: &'a SCO<T>) -> HashSet<(S, S)>  {
+    fn dependency_from_subsumption(_sco: &SCO<T>) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
-    fn dependency_from_equivalences(_ecs: &'a EquivalentClasses<T>) -> HashSet<(S, S)> {
+    fn dependency_from_equivalences(_ecs: &EquivalentClasses<T>) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
-    fn dependency_from_disjoint_classes(dcs: &'a DisjointClasses<T>) -> HashSet<(S, S)> {
+    fn dependency_from_disjoint_classes(dcs: &DisjointClasses<T>) -> HashSet<(Term<T>, Term<T>)> {
         dcs.0
             .iter()
             .combinations(2)
@@ -152,189 +164,189 @@ pub trait SyntaxBasedDependency<'a, S: ForSymbol, T:ForIRI + 'a>: DependencyBuil
             .collect()
     }
 
-    fn dependency_from_disjoint_class_pair(
+    fn dependency_from_disjoint_class_pair<'a>(
         _c1: &'a ClassExpression<T>,
         _c2: &'a ClassExpression<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependency_from_disjoint_union(_du: &DisjointUnion<T>) -> HashSet<(S, S)> {
+    fn dependency_from_disjoint_union(_du: &DisjointUnion<T>) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
-    fn dependency_from_sub_object_property(_spo: &SubObjectPropertyOf<T>) -> HashSet<(S, S)> {
+    fn dependency_from_sub_object_property(_spo: &SubObjectPropertyOf<T>) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_equiv_object_properties(
         _eops: &EquivalentObjectProperties<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_disjoint_object_properties(
         _dops: &DisjointObjectProperties<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_inverse_object_properties(
         _iop: &InverseObjectProperties<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_object_property_domain(
         _opd: &ObjectPropertyDomain<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
-    fn dependency_from_object_property_range(_opr: &ObjectPropertyRange<T>) -> HashSet<(S, S)> where S: ForSymbol{
+    fn dependency_from_object_property_range(_opr: &ObjectPropertyRange<T>) -> HashSet<(Term<T>, Term<T>)>{
         HashSet::new()
     }
 
     fn dependency_from_functional_object_property(
         _fop: &FunctionalObjectProperty<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_inverse_functional_object_property(
         _ifop: &InverseFunctionalObjectProperty<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_reflexive_object_property(
         _rop: &ReflexiveObjectProperty<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_irreflexive_object_property(
         _irop: &IrreflexiveObjectProperty<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_symmetric_object_property(
         _sop: &SymmetricObjectProperty<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_asymmetric_object_property(
         _aop: &AsymmetricObjectProperty<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_transitive_object_property(
         _top: &TransitiveObjectProperty<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
-    fn dependency_from_sub_data_property(_sdp: &SubDataPropertyOf<T>) -> HashSet<(S, S)> {
+    fn dependency_from_sub_data_property(_sdp: &SubDataPropertyOf<T>) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_equiv_data_properties(
         _edp: &EquivalentDataProperties<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_disjoint_data_properties(
         _ddp: &DisjointDataProperties<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
-    fn dependency_from_data_property_domain(_dpd: &DataPropertyDomain<T>) -> HashSet<(S, S)> {
+    fn dependency_from_data_property_domain(_dpd: &DataPropertyDomain<T>) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
-    fn dependency_from_data_property_range(_dpr: &DataPropertyRange<T>) -> HashSet<(S, S)> {
+    fn dependency_from_data_property_range(_dpr: &DataPropertyRange<T>) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_functional_data_property(
         _fdp: &FunctionalDataProperty<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
-    fn dependency_from_class_assertion(_ca: &ClassAssertion<T>) -> HashSet<(S, S)> {
+    fn dependency_from_class_assertion(_ca: &ClassAssertion<T>) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_object_property_assertion(
         _opa: &ObjectPropertyAssertion<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_negative_object_property_assertion(
         _nopa: &NegativeObjectPropertyAssertion<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_data_property_assertion(
         _dpa: &DataPropertyAssertion<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_negative_data_property_assertion(
         _ndpa: &NegativeDataPropertyAssertion<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
-    fn dependency_from_same_individual(_si: &SameIndividual<T>) -> HashSet<(S, S)> {
+    fn dependency_from_same_individual(_si: &SameIndividual<T>) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
-    fn dependency_from_different_individuals(_di: &DifferentIndividuals<T>) -> HashSet<(S, S)> {
+    fn dependency_from_different_individuals(_di: &DifferentIndividuals<T>) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
-    fn dependency_from_annotation_assertion(_aa: &AnnotationAssertion<T>) -> HashSet<(S, S)> {
+    fn dependency_from_annotation_assertion(_aa: &AnnotationAssertion<T>) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_sub_annotation_property(
         _sapo: &SubAnnotationPropertyOf<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_annotation_property_domain(
         _apd: &AnnotationPropertyDomain<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     fn dependency_from_annotation_property_range(
         _apr: &AnnotationPropertyRange<T>,
-    ) -> HashSet<(S, S)> {
+    ) -> HashSet<(Term<T>, Term<T>)> {
         HashSet::new()
     }
 
     /// Analyzes and extracts dependencies from a class expression
-    fn dependencies_from_class_expression(ce: &'a ClassExpression<T>) -> HashSet<(S, S)> where S: ForSymbol;
+    fn dependencies_from_class_expression(ce: &ClassExpression<T>) -> HashSet<(Term<T>, Term<T>)>;
 }
 
-pub fn reduce_map<S:ForSymbol, SC: ForSymbol>(map: &HashMap<S,HashSet<SC>>) -> HashMap<S, HashSet<SC>> {
+pub fn reduce_map<T: ForIRI, C: Clone>(map: &ComplexDependencyMap<T, C>) -> DependencyMap<T, C> {
     // Get all dependencies with atomic left-hand sides
-    let non_atomic_left_sides = map.into_iter().filter( |(k,_)| k.is_atomic());
+    let non_atomic_left_sides = map.into_iter().filter( |(k,_)| k.is_atomic()).map(|(k,v)| (k.get_symbol().unwrap(),v));
     // Filter out non-atomic right-hand sides
-    let non_atomic_right_sides =non_atomic_left_sides.map(|(k,vs)| (k.clone(), vs.into_iter().filter(|v| v.is_atomic()).cloned().collect::<HashSet<_>>()));
+    let non_atomic_right_sides: Vec<(Symbol<T>, HashMap<Symbol<T>, C>)> =non_atomic_left_sides.map(|(k,vmap)| (k.clone(), vmap.into_iter().filter(|(s,_)| s.is_atomic()).map(|(s,c)|(s.get_symbol().unwrap(),(*c).clone())).collect::<HashMap<Symbol<T>,C>>())).collect();
     // Filter all entries with empty left-hand sides
-    let non_empty_right_sides = non_atomic_right_sides.filter(|(_, vs)| !vs.is_empty());
-    non_empty_right_sides.collect()
+    let non_empty_right_sides: DependencyMap<T,C> = non_atomic_right_sides.into_iter().filter(|(_, vs)| !vs.is_empty()).collect();
+    non_empty_right_sides
 }

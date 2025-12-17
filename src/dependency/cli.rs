@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
+use std::path::Path;
 use clap::Parser;
 use horned_owl::model::{ArcStr, Component};
 use horned_owl::io::ofn::writer::AsFunctional;
@@ -12,8 +13,9 @@ use serde_json::json;
 use crate::ontology::visitor::AxiomVisitor;
 use indicatif::ProgressIterator;
 pub use crate::cli::base::Runnable;
+use crate::dependency::empty::EmptinessDependency;
 use crate::dependency::llm::ask;
-use crate::dependency::symbol::{DependencySymbolWithAxioms, OntologySymbol, SymbolContainer};
+use crate::dependency::symbol::{Term};
 
 
 /// Search for a pattern in a file and display the lines that contain it.
@@ -21,13 +23,15 @@ use crate::dependency::symbol::{DependencySymbolWithAxioms, OntologySymbol, Symb
 #[command(version, about, long_about = None)]
 pub struct DependencyWriter {
     #[arg(short, long)]
+    method: String,
+
+    #[arg(short, long)]
     in_path: std::path::PathBuf,
 
     #[arg(short, long)]
     out_path: std::path::PathBuf,
 
-    #[arg(short, long, default_value = "json")]
-    format: String,
+
 
     #[arg(short, long)]
     llm: Option<bool>,
@@ -36,25 +40,32 @@ pub struct DependencyWriter {
 
 impl Runnable<()> for DependencyWriter {
     fn run(&self) {
-        let file = File::create(&self.out_path).expect("Failed to create file");
+        let path = Path::new(&self.out_path);
+        let file = File::create(path).expect("Failed to create file");
         let onto = load_set_ontology(self.in_path.to_str().unwrap());
         let set_index = onto.i();
-        let raw_dependencies = &GrowthDependency::build_dependencies(set_index.iter());
-        let dependencies = reduce_map::<OntologySymbol<ArcStr>, DependencySymbolWithAxioms<OntologySymbol<ArcStr>, &Component<ArcStr>>>(raw_dependencies);
-        let cleaned_dependencies = remove_super_symbols(&dependencies, set_index.iter(), |v|v.clone());
+        let dependencies;
+        if self.method == "growth" {
+            dependencies = GrowthDependency::build_dependencies(set_index.iter());
+        } else if self.method == "emptiness" {
+            dependencies = EmptinessDependency::build_dependencies(set_index.iter());
+        } else {
+            panic!("Unknown method {}", self.method);
+        }
+        //let dependencies = reduce_map(raw_dependencies);
+        let cleaned_dependencies = remove_super_symbols(&dependencies, set_index.iter());
         let mut annotations = Annotations::<_>::default();
         let placeholder = ArcStr::from("");
         annotations.visit_components(set_index.iter(), &placeholder);
         let mut results = HashMap::new();
         for (a, vs) in cleaned_dependencies.iter().progress(){
-            let a_t = a.get_iri().unwrap();
-            match ask(&a_t, &vs.iter().cloned().collect(), &annotations.definitions, &annotations.labels) {
+            let a_t = a.underlying();
+            match ask(a_t, vs, &annotations.definitions, &annotations.labels) {
                 Ok(result) => {
                     if !result.is_empty() {
                         let mut r = Vec::new();
-                        for (k, should_be_dependent) in result {
-                            let k_iri = k.get_symbol().get_iri().unwrap();
-                            let k_ax = k.get_axioms();
+                        for (k, (k_ax, should_be_dependent)) in result {
+                            let k_iri = k.underlying();
                             let ax_list: Vec<String> = k_ax.iter().map(|&ax| ax.as_functional().to_string()).collect();
                             r.push(json!({"iri": k_iri.to_string(), "llm": should_be_dependent, "cause": ax_list}));
                         }
@@ -64,11 +75,10 @@ impl Runnable<()> for DependencyWriter {
                 Err(e) => {println!("Error querying LLM for dependencies of <{}>: {} -- Skipping", a_t, e)}
             }
         }
-        if self.format == "json" {
 
-            let mut writer = BufWriter::new(file);
-            serde_json::to_writer(&mut writer, &results).expect("Failed to write JSON to file");
-        }
+        let mut writer = BufWriter::new(file);
+        serde_json::to_writer(&mut writer, &results).expect("Failed to write JSON to file");
+
     }
 
 

@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 use std::time::Duration;
-use horned_owl::model::ForIRI;
+use horned_owl::model::{Component, ForIRI};
 use serde_json::json;
-use crate::dependency::symbol::{OntologySymbol, SymbolContainer};
+use crate::dependency::symbol::{Symbol, Term};
 use crate::util::error::StrixError;
 
-pub(crate) fn ask<'a, C, SC:SymbolContainer<OntologySymbol<'a, T>, C>, T: ForIRI + 'a>(a: &T, depends_on: &Vec<SC>, definitions: &HashMap<T, String>, labels: &HashMap<T, String> ) -> Result<HashMap<SC, bool>, StrixError> {
+pub(crate) fn ask<'a, C: Clone, T: ForIRI + 'a>(a: &T, depends_on: &HashMap<Symbol<T>, C>, definitions: &HashMap<T, String>, labels: &HashMap<T, String> ) -> Result<HashMap<Symbol<T>, (C, bool)>, StrixError> {
     let request_url = "http://localhost:11434/api/generate";
 
     let client = match reqwest::blocking::Client::builder().timeout(Duration::from_secs(3000)).build() {
@@ -22,8 +22,8 @@ pub(crate) fn ask<'a, C, SC:SymbolContainer<OntologySymbol<'a, T>, C>, T: ForIRI
     if depends_on.is_empty() {
         Ok(HashMap::new())
     } else {
-        for (i, dep) in depends_on.iter().enumerate() {
-            let d = dep.get_symbol().get_iri().unwrap();
+        for (i, (dep,_)) in depends_on.iter().enumerate() {
+            let d = dep.underlying();
             let l = labels.get(&d).unwrap_or(&d.to_string()).clone();
             let def = definitions.get(&d).unwrap_or(&"No definition".to_string()).clone();
             prompt += format!["\t{i}: '{l}' -- Definition: '{def}'\n"].as_str();
@@ -55,7 +55,7 @@ pub(crate) fn ask<'a, C, SC:SymbolContainer<OntologySymbol<'a, T>, C>, T: ForIRI
                     }
                 }
                 match lines.len() == depends_on.len() {
-                    true => Ok(depends_on.iter().cloned().zip(lines).collect()),
+                    true => Ok(depends_on.iter().zip(lines).map(|((d,c),l)| (d.clone(), (c.clone(),l))).collect()),
                     false => Err(StrixError::Error {message:format!("Length of symbols does not match list returned by LLM ({}!={})",lines.len(), depends_on.len())})
                 }
 
