@@ -13,7 +13,8 @@ use serde_json::json;
 use crate::ontology::visitor::AxiomVisitor;
 use indicatif::ProgressIterator;
 pub use crate::cli::base::Runnable;
-use crate::dependency::empty::{SemanticEmptinessDependency};
+use crate::dependency::empty::{SemanticEmptinessDependency, SyntacticEmptinessDependency};
+use crate::dependency::everything::{SemanticEverythingDependency, SyntacticEverythingDependency};
 use crate::dependency::llm::ask;
 
 
@@ -31,7 +32,6 @@ pub struct DependencyWriter {
     llm: Option<bool>,
 }
 
-
 impl Runnable<()> for DependencyWriter {
     fn run(&self) {
         let path = Path::new(&self.in_path);
@@ -41,15 +41,16 @@ impl Runnable<()> for DependencyWriter {
         let file = File::create(path).expect("Failed to create file");
         let onto = load_set_ontology(self.in_path.to_str().unwrap());
         let set_index = onto.i();
-        let dependencies;
-        if self.method == "growth" {
-            dependencies = GrowthDependency::build_dependencies(set_index.iter());
-        } else if self.method == "emptiness" {
-            dependencies = SemanticEmptinessDependency::build_dependencies(set_index.iter());
-        } else {
-            panic!("Unknown method {}", self.method);
-        }
-        //let dependencies = reduce_map(raw_dependencies);
+        let dependency_mechanism = match self.method.as_str() {
+            "growth" => GrowthDependency::build_dependencies,
+            "empty_sem" => SemanticEmptinessDependency::build_dependencies,
+            "empty" => SyntacticEmptinessDependency::build_dependencies,
+            "everything_sem" => SemanticEverythingDependency::build_dependencies,
+            "everything" => SyntacticEverythingDependency::build_dependencies,
+            _ => panic!("Unknown dependency mechanism {}", self.method)
+        };
+
+        let dependencies = dependency_mechanism(set_index.iter());
         let cleaned_dependencies = remove_super_symbols(&dependencies, set_index.iter());
         let mut annotations = Annotations::<_>::default();
         let placeholder = ArcStr::from("");
