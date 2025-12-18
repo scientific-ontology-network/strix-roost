@@ -8,8 +8,7 @@ use crate::dependency::base::{DependencyBuilder, DependencyMap};
 use crate::dependency::symbol::{Term, Symbol};
 use whelk::whelk::owl::translate_ontology;
 use whelk::whelk::reasoner::assert;
-use crate::dependency::syntax_based::{reduce_map, SyntaxBasedDependency};
-use crate::util::graph::transitive_closure;
+use crate::dependency::syntax_based::SyntaxBasedDependency;
 
 pub struct SemanticEmptinessDependency {}
 

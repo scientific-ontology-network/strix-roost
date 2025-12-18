@@ -9,8 +9,7 @@ use crate::dependency::base::{DependencyBuilder, DependencyMap};
 use crate::dependency::symbol::{Term, Symbol};
 use whelk::whelk::owl::translate_ontology;
 use whelk::whelk::reasoner::assert;
-use crate::dependency::syntax_based::{reduce_map, SyntaxBasedDependency};
-use crate::util::graph::transitive_closure;
+use crate::dependency::syntax_based::SyntaxBasedDependency;
 
 pub struct SemanticEverythingDependency {}
 
@@ -94,7 +93,7 @@ impl<T:ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
             .collect()
     }
 
-    fn dependencies_from_object_all_values_from<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    fn dependencies_from_object_all_values_from<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         [
             (Term::CE(x),Term::Role(ope)),
         ]

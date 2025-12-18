@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 use std::hash::Hash;
-use horned_owl::model::{ClassExpression, ForIRI, ObjectPropertyExpression, SubObjectPropertyOf};
+use horned_owl::model::{ClassExpression, ForIRI, ObjectPropertyExpression};
 
 #[derive(Debug, Eq, Clone, Hash, PartialEq)]
 pub enum Symbol<T: ForIRI> {
