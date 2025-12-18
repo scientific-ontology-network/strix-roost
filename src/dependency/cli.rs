@@ -39,7 +39,7 @@ impl Runnable<()> for DependencyWriter {
         let path = path.with_file_name(fname);
         println!("Writing results to {:?}", path);
         let file = File::create(path).expect("Failed to create file");
-        let onto = load_set_ontology(self.in_path.to_str().unwrap());
+        let onto = load_set_ontology(self.in_path.to_str().unwrap()).expect("Failed to load ontology");
         let set_index = onto.i();
         let dependency_mechanism = match self.method.as_str() {
             "growth" => GrowthDependency::build_dependencies,
@@ -56,23 +56,36 @@ impl Runnable<()> for DependencyWriter {
         let placeholder = ArcStr::from("");
         annotations.visit_components(set_index.iter(), &placeholder);
         let mut results = HashMap::new();
-        for (a, vs) in cleaned_dependencies.iter().progress(){
-            let a_t = a.underlying();
-            match ask(a_t, vs, &annotations.definitions, &annotations.labels) {
-                Ok(result) => {
-                    if !result.is_empty() {
-                        let mut r = Vec::new();
-                        for (k, (k_ax, should_be_dependent)) in result {
-                            let k_iri = k.underlying();
-                            let ax_list: Vec<String> = k_ax.iter().map(|&ax| ax.as_functional().to_string()).collect();
-                            r.push(json!({"iri": k_iri.to_string(), "llm": should_be_dependent, "cause": ax_list}));
+        if self.llm.unwrap_or(false) {
+            for (a, vs) in cleaned_dependencies.iter().progress(){
+                let a_t = a.underlying();
+                match ask(a_t, vs, &annotations.definitions, &annotations.labels) {
+                    Ok(result) => {
+                        if !result.is_empty() {
+                            let mut r = Vec::new();
+                            for (k, (k_ax, should_be_dependent)) in result {
+                                let k_iri = k.underlying();
+                                let ax_list: Vec<String> = k_ax.iter().map(|&ax| ax.as_functional().to_string()).collect();
+                                r.push(json!({"iri": k_iri.to_string(), "llm": should_be_dependent, "cause": ax_list}));
+                            }
+                            results.insert(a_t.to_string(), r);
                         }
-                        results.insert(a_t.to_string(), r);
                     }
+                    Err(e) => {println!("Error querying LLM for dependencies of <{}>: {} -- Skipping", a_t, e)}
                 }
-                Err(e) => {println!("Error querying LLM for dependencies of <{}>: {} -- Skipping", a_t, e)}
+            }
+        } else {
+            for (a, vs) in cleaned_dependencies.iter().progress(){
+                let mut r = Vec::new();
+                for (k, k_ax) in vs {
+                    let k_iri = k.underlying();
+                    let ax_list: Vec<String> = k_ax.iter().map(|&ax| ax.as_functional().to_string()).collect();
+                    r.push(json!({"iri": k_iri.to_string(), "cause": ax_list}));
+                }
+                results.insert(a.underlying().to_string(), r);
             }
         }
+
 
         let mut writer = BufWriter::new(file);
         serde_json::to_writer(&mut writer, &results).expect("Failed to write JSON to file");

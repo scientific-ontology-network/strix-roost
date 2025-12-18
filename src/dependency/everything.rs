@@ -105,7 +105,7 @@ impl<T:ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
     fn dependencies_from_object_property_expression<'a>(ope: &'a ObjectPropertyExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         match ope {
             ObjectPropertyExpression::ObjectProperty(_op) => { HashSet::new() },
-            ObjectPropertyExpression::InverseObjectProperty(_op) => { HashSet::new() },
+            ObjectPropertyExpression::InverseObjectProperty(_op) => { println!("Inverse object properties are not supported in syntactic emptiness dependency yet. Skipping!"); HashSet::new() },
         }
     }
 
