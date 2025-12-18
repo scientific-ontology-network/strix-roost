@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 use std::hash::Hash;
-use horned_owl::model::{ClassExpression, ForIRI, ObjectPropertyExpression};
+use horned_owl::model::{ClassExpression, ForIRI, ObjectPropertyExpression, SubObjectPropertyOf};
 
 #[derive(Debug, Eq, Clone, Hash, PartialEq)]
 pub enum Symbol<T: ForIRI> {
@@ -24,6 +24,10 @@ pub enum Term<'a, T: ForIRI> {
     CE(&'a ClassExpression<T>),
     /// A reference to an object property expression (role)
     Role(&'a ObjectPropertyExpression<T>),
+    /// A reference to a role composition
+    RoleComposition(Vec<&'a ObjectPropertyExpression<T>>),
+    /// A reference to a role composition
+    InverseRole(&'a ObjectPropertyExpression<T>),
 }
 
 impl<'a, T:ForIRI> Term<'a, T>{

@@ -1,5 +1,5 @@
 use std::collections::{HashMap, HashSet};
-use horned_owl::model::{AnnotatedComponent, AnnotationAssertion, AnnotationPropertyDomain, AnnotationPropertyRange, AsymmetricObjectProperty, ClassAssertion, ClassExpression, Component, DataProperty, DataPropertyAssertion, DataPropertyDomain, DataPropertyRange, DataRange, DifferentIndividuals, DisjointClasses, DisjointDataProperties, DisjointObjectProperties, DisjointUnion, EquivalentClasses, EquivalentDataProperties, EquivalentObjectProperties, ForIRI, FunctionalDataProperty, FunctionalObjectProperty, Individual, InverseFunctionalObjectProperty, InverseObjectProperties, IrreflexiveObjectProperty, Literal, NegativeDataPropertyAssertion, NegativeObjectPropertyAssertion, ObjectPropertyAssertion, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, ReflexiveObjectProperty, SameIndividual, SubAnnotationPropertyOf, SubClassOf, SubDataPropertyOf, SubObjectPropertyOf, SymmetricObjectProperty, TransitiveObjectProperty};
+use horned_owl::model::{AnnotatedComponent, AnnotationAssertion, AnnotationPropertyDomain, AnnotationPropertyRange, AsymmetricObjectProperty, ClassAssertion, ClassExpression, Component, DataProperty, DataPropertyAssertion, DataPropertyDomain, DataPropertyRange, DataRange, DifferentIndividuals, DisjointClasses, DisjointDataProperties, DisjointObjectProperties, DisjointUnion, EquivalentClasses, EquivalentDataProperties, EquivalentObjectProperties, ForIRI, FunctionalDataProperty, FunctionalObjectProperty, Individual, InverseFunctionalObjectProperty, InverseObjectProperties, IrreflexiveObjectProperty, Literal, NegativeDataPropertyAssertion, NegativeObjectPropertyAssertion, ObjectPropertyAssertion, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, ReflexiveObjectProperty, SameIndividual, SubAnnotationPropertyOf, SubClassOf, SubDataPropertyOf, SubObjectPropertyExpression, SubObjectPropertyOf, SymmetricObjectProperty, TransitiveObjectProperty};
 use itertools::Itertools;
 use crate::dependency::base::{ComplexDependencyMap, DependencyBuilder, DependencyMap};
 use crate::dependency::symbol::{Symbol, Term};
@@ -137,7 +137,7 @@ pub trait SyntaxBasedDependency<T:ForIRI>: DependencyBuilder<T> {
 
     /// Extracts dependencies from subsumption relationships (SubClassOf axioms)
     fn dependency_from_subsumption(sco: &SubClassOf<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        [(Term::CE(&sco.sub), Term::CE(&sco.sub))].into_iter().chain(Self::dependencies_from_class_expression(&sco.sub)).chain(Self::dependencies_from_class_expression(&sco.sub)).collect()
+        [(Term::CE(&sco.sub), Term::CE(&sco.sup))].into_iter().chain(Self::dependencies_from_class_expression(&sco.sub)).chain(Self::dependencies_from_class_expression(&sco.sup)).collect()
     }
 
     fn dependency_from_equivalences(_ecs: &EquivalentClasses<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
@@ -169,14 +169,37 @@ pub trait SyntaxBasedDependency<T:ForIRI>: DependencyBuilder<T> {
         HashSet::new()
     }
 
-    fn dependency_from_sub_object_property(_spo: &SubObjectPropertyOf<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
+    fn dependency_from_sub_object_property(spo: &SubObjectPropertyOf<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
+        let l = match spo.sub {
+            SubObjectPropertyExpression::ObjectPropertyChain(ref c) => { Term::RoleComposition(c.iter().collect())}
+            SubObjectPropertyExpression::ObjectPropertyExpression(ref ope) => {Term::Role(ope)}
+        };
+        [(l, Term::Role(&spo.sup))].into_iter().chain(
+            Self::dependencies_from_sub_object_propterty_expression(&spo.sub)).chain(Self::dependencies_from_object_property_expression(&spo.sup)).collect()
+
+    }
+
+    fn dependencies_from_sub_object_propterty_expression<'a>(sops: &'a SubObjectPropertyExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        match sops {
+            SubObjectPropertyExpression::ObjectPropertyChain(c) => {
+                Self::dependencies_from_object_property_chain(c.iter().collect())
+            }
+            SubObjectPropertyExpression::ObjectPropertyExpression(ope) => {
+                Self::dependencies_from_object_property_expression(ope)
+            }
+        }
+    }
+
+    fn dependencies_from_object_property_chain<'a>(_opes: Vec<&'a ObjectPropertyExpression<T>>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
     fn dependency_from_equiv_object_properties(
-        _eops: &EquivalentObjectProperties<T>,
+        eops: &EquivalentObjectProperties<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
+        let paired = quasiproduct(eops.0.iter().map(|c| Term::Role(c)).collect());
+        let derived_dependencies = eops.0.iter().flat_map(|ce| Self::dependencies_from_object_property_expression(ce));
+        paired.into_iter().chain(derived_dependencies).collect()
     }
 
     fn dependency_from_disjoint_object_properties(
