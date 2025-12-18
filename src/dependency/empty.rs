@@ -8,7 +8,8 @@ use crate::dependency::base::{DependencyBuilder, DependencyMap};
 use crate::dependency::symbol::{Term, Symbol};
 use whelk::whelk::owl::translate_ontology;
 use whelk::whelk::reasoner::assert;
-use crate::dependency::syntax_based::SyntaxBasedDependency;
+use crate::dependency::syntax_based::{reduce_map, SyntaxBasedDependency};
+use crate::util::graph::transitive_closure;
 
 pub struct SemanticEmptinessDependency {}
 
@@ -61,11 +62,11 @@ impl<T:ForIRI> DependencyBuilder<T> for SemanticEmptinessDependency {
 pub struct SyntacticEmptinessDependency {}
 
 impl<T:ForIRI> DependencyBuilder<T> for SyntacticEmptinessDependency {
-    fn build_dependencies<'a>(_ontology_iter: impl Iterator<Item=&'a AnnotatedComponent<T>>) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>>
+    fn build_dependencies<'a>(ontology_iter: impl Iterator<Item=&'a AnnotatedComponent<T>>) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>>
     where
         T: 'a
     {
-        todo!()
+        Self::derive_from_axioms(ontology_iter)
     }
 }
 
@@ -78,12 +79,36 @@ impl<T:ForIRI> SyntaxBasedDependency<T> for SyntacticEmptinessDependency {
         }
     }
 
+    fn dependencies_from_object_intersection_of<'a>(x: &'a ClassExpression<T>, ces: &'a Vec<ClassExpression<T>>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        ces.into_iter()
+            .flat_map(|ce2| {
+                [(Term::CE(x), Term::CE(ce2))]
+                    .into_iter()
+                    .chain(Self::dependencies_from_class_expression(ce2))
+            })
+            .collect()
+    }
+
+    fn dependencies_from_object_some_values_from<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        [
+            (Term::CE(x), Term::CE(bce)),
+            (Term::CE(x), Term::Role(ope)),
+        ]
+            .into_iter()
+            .chain(Self::dependencies_from_class_expression(bce))
+            .chain(Self::dependencies_from_object_property_expression(ope))
+            .collect()
+    }
 
     // X = range(r)
     fn dependency_from_object_property_range(_opr: &ObjectPropertyRange<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         [
             (Term::CE(&_opr.ce),Term::Role(&_opr.ope)), // X -> r
             (Term::Role(&_opr.ope), Term::CE(&_opr.ce)) // r -> X
-        ].into_iter().chain(Self::dependencies_from_class_expression(&_opr.ce)).chain(Self::dependencies_from_object_property_expression(&_opr.ope)).collect()
+        ]
+            .into_iter()
+            .chain(Self::dependencies_from_class_expression(&_opr.ce))
+            .chain(Self::dependencies_from_object_property_expression(&_opr.ope))
+            .collect()
     }
 }

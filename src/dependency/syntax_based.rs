@@ -3,6 +3,7 @@ use horned_owl::model::{AnnotatedComponent, AnnotationAssertion, AnnotationPrope
 use itertools::Itertools;
 use crate::dependency::base::{ComplexDependencyMap, DependencyBuilder, DependencyMap};
 use crate::dependency::symbol::{Symbol, Term};
+use crate::util::graph::transitive_closure;
 
 fn quasiproduct<T:Eq + Clone>(it: Vec<T>) -> Vec<(T, T)>{
     it.iter().zip(it.iter()).map(|(a,b)| (a.clone(),b.clone())).filter(|(a,b)| a != b).collect()
@@ -16,6 +17,22 @@ pub trait SyntaxBasedDependency<T:ForIRI>: DependencyBuilder<T> {
     ///
     /// # Returns
     /// A vector of dependency pairs representing relationships between ontological elements
+    ///
+
+    fn derive_from_axioms<'a> (
+        ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
+    ) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>>
+    {
+        let mut map = HashMap::new();
+        for (a,b,c) in Self::dependencies_from_components(ontology_iter){
+            if !map.contains_key(&a) {
+                map.insert(a.clone(), HashMap::new());
+            }
+            map.get_mut(&a).unwrap().insert(b,c);
+        }
+        reduce_map(&transitive_closure(&map))
+    }
+
     fn dependencies_from_components<'a>
     (
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
@@ -452,3 +469,4 @@ pub fn reduce_map<T: ForIRI, C: Clone>(map: &ComplexDependencyMap<T, C>) -> Depe
     let non_empty_right_sides: DependencyMap<T,C> = non_atomic_right_sides.into_iter().filter(|(_, vs)| !vs.is_empty()).collect();
     non_empty_right_sides
 }
+

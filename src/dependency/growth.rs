@@ -9,20 +9,12 @@ use crate::util::graph::transitive_closure;
 
 pub struct GrowthDependency {}
 
-
 impl<T: ForIRI> DependencyBuilder<T> for GrowthDependency {
     fn build_dependencies<'a> (
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
     ) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>>
     {
-        let mut map = HashMap::new();
-        for (a,b,c) in Self::dependencies_from_components(ontology_iter){
-            if !map.contains_key(&a) {
-                map.insert(a.clone(), HashMap::new());
-            }
-            map.get_mut(&a).unwrap().insert(b,c);
-        }
-        reduce_map(&transitive_closure(&map))
+        Self::derive_from_axioms(ontology_iter)
     }
 }
 
