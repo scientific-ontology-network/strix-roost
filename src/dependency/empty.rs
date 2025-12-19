@@ -1,6 +1,5 @@
 use std::collections::{HashMap, HashSet};
 use horned_owl::model::{AnnotatedComponent, Build, Class, ClassExpression, Component, ForIRI, MutableOntology, ObjectPropertyExpression, ObjectPropertyRange, SubClassOf};
-use horned_owl::ontology::indexed::ForIndex;
 use horned_owl::ontology::set::SetOntology;
 use horned_owl::vocab::OWL;
 use indicatif::ProgressIterator;
@@ -74,7 +73,9 @@ impl<T:ForIRI> SyntaxBasedDependency<T> for SyntacticEmptinessDependency {
     fn dependencies_from_object_property_expression(ope: &ObjectPropertyExpression<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         match ope {
             ObjectPropertyExpression::ObjectProperty(_op) => { HashSet::new() },
-            ObjectPropertyExpression::InverseObjectProperty(_op) => { println!("Inverse object properties are not supported in syntactic emptiness dependency yet. Skipping!"); HashSet::new() },
+            ObjectPropertyExpression::InverseObjectProperty(_op) => {
+                println!("Inverse object properties are not supported in syntactic emptiness dependency yet. Skipping!");
+                HashSet::new() },
         }
     }
 

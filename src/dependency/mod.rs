@@ -1,11 +1,8 @@
-
 pub mod base;
-pub mod growth;
 pub mod cli;
+mod empty;
+mod everything;
+pub mod growth;
 mod llm;
 pub mod symbol;
-mod empty;
 mod syntax_based;
-mod everything;
-
-

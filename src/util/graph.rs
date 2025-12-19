@@ -4,7 +4,7 @@ use std::hash::Hash;
 /// Compute the transitive closure of a directed graph.
 /// Input: adjacency list as HashMap<T, HashSet<T>>.
 /// Output: new adjacency list with reachability closure.
-pub fn transitive_closure<S: Eq + Hash + Clone, C: Eq+ Hash + Clone>(
+pub fn transitive_closure<S: Eq + Hash + Clone, C: Eq + Hash + Clone>(
     graph: &HashMap<S, HashMap<S, HashSet<C>>>,
 ) -> HashMap<S, HashMap<S, HashSet<C>>> {
     let mut closure: HashMap<S, HashMap<S, HashSet<C>>> = HashMap::new();
@@ -18,7 +18,7 @@ pub fn transitive_closure<S: Eq + Hash + Clone, C: Eq+ Hash + Clone>(
 }
 
 /// DFS with memoization: only one SC per symbol
-fn dfs_with_memo<S: Eq + Hash + Clone, C: Eq+ Hash + Clone>(
+fn dfs_with_memo<S: Eq + Hash + Clone, C: Eq + Hash + Clone>(
     start: &S,
     graph: &HashMap<S, HashMap<S, HashSet<C>>>,
     memo: &mut HashMap<S, HashMap<S, HashSet<C>>>,
@@ -29,10 +29,9 @@ fn dfs_with_memo<S: Eq + Hash + Clone, C: Eq+ Hash + Clone>(
     }
 
     let mut visited: HashMap<S, HashSet<C>> = HashMap::new();
-    let mut stack= vec![(start.clone(), HashSet::new())];
+    let mut stack = vec![(start.clone(), HashSet::new())];
 
     while let Some((sym, ax)) = stack.pop() {
-
         if visited.contains_key(&sym) {
             continue; // already visited this symbol
         }
@@ -43,7 +42,10 @@ fn dfs_with_memo<S: Eq + Hash + Clone, C: Eq+ Hash + Clone>(
         if let Some(neighbors) = graph.get(&sym) {
             for (neigh_sym, neigh_ax) in neighbors {
                 if !visited.contains_key(neigh_sym) {
-                    stack.push((neigh_sym.clone(), neigh_ax.union(&ax).into_iter().cloned().collect()) );
+                    stack.push((
+                        neigh_sym.clone(),
+                        neigh_ax.union(&ax).into_iter().cloned().collect(),
+                    ));
                 }
             }
         }
@@ -60,33 +62,50 @@ fn dfs_with_memo<S: Eq + Hash + Clone, C: Eq+ Hash + Clone>(
 
 #[cfg(test)]
 mod tests {
-    
-    use crate::dependency::symbol::{Symbol};
+
     use super::*;
+    use crate::dependency::symbol::Symbol;
 
     #[test]
     fn test_transitive_closure() {
-
         let to_ds = |s: &str| Symbol::Class(s.to_string());
-        let mut graph: HashMap<Symbol<String>, HashMap<Symbol<String>, HashSet<()>>> = HashMap::new();
-        let a =to_ds("A");
+        let mut graph: HashMap<Symbol<String>, HashMap<Symbol<String>, HashSet<()>>> =
+            HashMap::new();
+        let a = to_ds("A");
         let b = to_ds("B");
         let c = to_ds("C");
         let d = to_ds("D");
-        graph.insert(a.clone(), [(b.clone(), HashSet::new())].into_iter().collect());
-        graph.insert(b.clone(), [(c.clone(), HashSet::new())].into_iter().collect());
-        graph.insert(c.clone(), [(d.clone(), HashSet::new())].into_iter().collect());
+        graph.insert(
+            a.clone(),
+            [(b.clone(), HashSet::new())].into_iter().collect(),
+        );
+        graph.insert(
+            b.clone(),
+            [(c.clone(), HashSet::new())].into_iter().collect(),
+        );
+        graph.insert(
+            c.clone(),
+            [(d.clone(), HashSet::new())].into_iter().collect(),
+        );
         graph.insert(d.clone(), HashMap::new());
 
         let closure = transitive_closure(&graph);
 
         assert_eq!(
             closure.get(&a).unwrap(),
-            &[(b.clone(), HashSet::new()),(c.clone(), HashSet::new()), (d.clone(), HashSet::new())].into_iter().collect()
+            &[
+                (b.clone(), HashSet::new()),
+                (c.clone(), HashSet::new()),
+                (d.clone(), HashSet::new())
+            ]
+            .into_iter()
+            .collect()
         );
         assert_eq!(
             closure.get(&b).unwrap(),
-            &[(c.clone(), HashSet::new()), (d.clone(), HashSet::new())].into_iter().collect()
+            &[(c.clone(), HashSet::new()), (d.clone(), HashSet::new())]
+                .into_iter()
+                .collect()
         );
         assert_eq!(
             closure.get(&c).unwrap(),

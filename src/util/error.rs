@@ -1,7 +1,7 @@
 use horned_owl::error::HornedError;
+use serde::{Serialize, Serializer};
 use std::fmt::{Debug, Display, Formatter};
 use std::io::Error;
-use serde::{Serialize, Serializer};
 
 #[derive(Debug)]
 pub enum StrixError {
@@ -43,7 +43,7 @@ impl From<HornedError> for StrixError {
 impl Serialize for StrixError {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
-        S: Serializer
+        S: Serializer,
     {
         match self {
             StrixError::InternalStrixError { message } => serializer.serialize_str(message),

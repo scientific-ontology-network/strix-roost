@@ -2,30 +2,22 @@
 //! It defines structures and traits for representing and analyzing relationships between different
 //! ontological components such as class and property symbols.
 
-use std::collections::{HashMap, HashSet};
-use horned_owl::model::*;
 use crate::dependency::symbol::{Symbol, Term};
-
+use horned_owl::model::*;
+use std::collections::{HashMap, HashSet};
 
 pub type ComplexDependencyMap<'a, T, C> = HashMap<Term<'a, T>, HashMap<Term<'a, T>, C>>;
 pub type DependencyMap<T, C> = HashMap<Symbol<T>, HashMap<Symbol<T>, C>>;
 
-fn get_symbol<T: ForIRI>(t: Term<T>) -> Symbol<T> {
-    match t {
-        Term::CE(ClassExpression::Class(Class(iri))) => Symbol::Class(iri.underlying()),
-        Term::Role(ObjectPropertyExpression::ObjectProperty(ObjectProperty(iri))) => Symbol::Role(iri.underlying()),
-        _ => panic!("Trying to symbolize non-atomic expression: {t:?}")
-    }
-}
-
 /// Trait for building dependency relationships between ontological components
-pub trait DependencyBuilder<T:ForIRI> {
+pub trait DependencyBuilder<T: ForIRI> {
     /// Constructs a dependency map from an iterator of annotated components
     ///
     /// # Arguments
     /// * `ontology_iter` - An iterator over annotated ontology components
-    fn build_dependencies<'a> (
+    fn build_dependencies<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-    ) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>> where T: 'a;
+    ) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>>
+    where
+        T: 'a;
 }
-

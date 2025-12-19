@@ -1,5 +1,5 @@
 use crate::util::error::StrixError;
-use horned_owl::io::{rdf, ofn, ParserConfiguration, RDFParserConfiguration};
+use horned_owl::io::{ofn, rdf, ParserConfiguration, RDFParserConfiguration};
 use horned_owl::model::*;
 use horned_owl::ontology::set::SetOntology;
 use std::fs::File;
@@ -20,15 +20,14 @@ fn load_rdf_ontology(path: &str) -> Result<SetOntology<ArcStr>, StrixError> {
     let file = File::open(path)?;
     let reader = &mut BufReader::new(file);
     let build = Build::new_arc();
-    let res=
-        rdf::reader::read_with_build::<ArcStr, ArcAnnotatedComponent, BufReader<File>>(
-            reader,
-            &build,
-            ParserConfiguration {
-                rdf: RDFParserConfiguration { lax: true },
-                ..Default::default()
-            },
-        );
+    let res = rdf::reader::read_with_build::<ArcStr, ArcAnnotatedComponent, BufReader<File>>(
+        reader,
+        &build,
+        ParserConfiguration {
+            rdf: RDFParserConfiguration { lax: true },
+            ..Default::default()
+        },
+    );
     match res {
         Ok(oc) => Ok(oc.0.into()),
         Err(e) => panic!("Error loading ontology: {}", e),
@@ -39,11 +38,9 @@ fn load_ofn_ontology(path: &str) -> Result<SetOntology<ArcStr>, StrixError> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
     let build = Build::new_arc();
-    let res=
-        ofn::reader::read_with_build::<ArcStr, SetOntology<ArcStr>, BufReader<File>>(
-            reader,
-            &build,
-        );
+    let res = ofn::reader::read_with_build::<ArcStr, SetOntology<ArcStr>, BufReader<File>>(
+        reader, &build,
+    );
     match res {
         Ok(oc) => Ok(oc.0),
         Err(e) => panic!("Error loading ontology: {}", e),
