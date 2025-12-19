@@ -1,6 +1,5 @@
-use crate::util::error::StrixError;
 use clap::Parser;
-use horned_owl::model::{ArcStr, ForIRI};
+use horned_owl::model::ArcStr;
 use horned_owl::ontology::set::SetOntology;
 
 pub trait Runnable: Parser {

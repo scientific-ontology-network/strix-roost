@@ -4,18 +4,16 @@ use crate::dependency::empty::{SemanticEmptinessDependency, SyntacticEmptinessDe
 use crate::dependency::everything::{SemanticEverythingDependency, SyntacticEverythingDependency};
 use crate::dependency::growth::{remove_super_symbols, GrowthDependency};
 use crate::dependency::llm::ask;
-use crate::ontology::io::load_set_ontology;
 use crate::ontology::processors::annotations::{filter_literals_by_language, Annotations};
 use crate::ontology::visitor::AxiomVisitor;
 use clap::Parser;
 use horned_owl::io::ofn::writer::AsFunctional;
-use horned_owl::model::{ArcStr, ForIRI};
+use horned_owl::model::ArcStr;
 use indicatif::ProgressIterator;
 use serde_json::json;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
-use std::path::Path;
 use horned_owl::ontology::set::SetOntology;
 
 /// Search for a pattern in a file and display the lines that contain it.

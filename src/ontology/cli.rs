@@ -1,15 +1,12 @@
 pub use crate::cli::base::Runnable;
-use crate::ontology::processors::annotations::{filter_literals_by_language, Annotations};
+use crate::ontology::processors::annotations::Annotations;
 use crate::ontology::visitor::AxiomVisitor;
 use clap::Parser;
-use horned_owl::io::ofn::writer::AsFunctional;
-use horned_owl::model::{ArcStr, ForIRI, Literal, Ontology};
-use indicatif::ProgressIterator;
+use horned_owl::model::{ArcStr, Literal};
 use serde_json::json;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::BufWriter;
-use std::path::Path;
 use horned_owl::ontology::set::SetOntology;
 
 /// Search for a pattern in a file and display the lines that contain it.

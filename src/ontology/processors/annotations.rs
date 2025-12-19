@@ -46,7 +46,7 @@ impl<T: ForIRI> AxiomVisitor<T> for Annotations<T> {
 pub fn filter_literals_by_language<'a, T:ForIRI + 'a>(literals: Vec<&'a Literal<T>>, target_lang: &String, include_untagged:bool) -> Vec<&'a String>{
     literals.iter().filter_map(|l| match l{
         Literal::Simple { literal } => { if include_untagged {Some(literal)} else {None}}
-        Literal::Language { literal  , lang} => { if (lang == target_lang) {Some(literal)} else {None}}
+        Literal::Language { literal  , lang} => { if lang == target_lang  {Some(literal)} else {None}}
         Literal::Datatype { .. } => {None}
     }).collect()
 }

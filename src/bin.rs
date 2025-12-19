@@ -1,5 +1,5 @@
 
-use clap::{command, Error, Parser, Subcommand};
+use clap::{Parser, Subcommand};
 use strix_roost::dependency::cli::{DependencyWriter, Runnable};
 use strix_roost::ontology::io::load_set_ontology;
 use strix_roost::ontology::cli::{AnnotationWriter};
