@@ -10,6 +10,7 @@ pub fn load_set_ontology(path: &str) -> Result<SetOntology<ArcStr>, StrixError> 
     let ending = path.split(".").last().unwrap();
     match ending {
         "owl" => load_rdf_ontology(&path),
+        "ofn" => load_ofn_ontology(&path),
         _ => Err(StrixError::InternalStrixError {
             message: format!("Unknown file ending: {}", ending),
         }),
