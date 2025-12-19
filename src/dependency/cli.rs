@@ -9,13 +9,14 @@ use crate::ontology::processors::annotations::{filter_literals_by_language, Anno
 use crate::ontology::visitor::AxiomVisitor;
 use clap::Parser;
 use horned_owl::io::ofn::writer::AsFunctional;
-use horned_owl::model::ArcStr;
+use horned_owl::model::{ArcStr, ForIRI};
 use indicatif::ProgressIterator;
 use serde_json::json;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
+use horned_owl::ontology::set::SetOntology;
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(Parser, Debug)]
@@ -25,25 +26,15 @@ pub struct DependencyWriter {
     method: String,
 
     #[arg(short, long)]
-    in_path: std::path::PathBuf,
+    out_path: std::path::PathBuf,
 
     #[arg(short, long)]
     llm: Option<bool>,
 }
 
-impl Runnable<()> for DependencyWriter {
-    fn run(&self) {
-        let path = Path::new(&self.in_path);
-        let fname = format!(
-            "{}_dep_{}.json",
-            path.file_stem().unwrap().to_str().unwrap(),
-            self.method
-        );
-        let path = path.with_file_name(fname);
-        println!("Writing results to {:?}", path);
-        let file = File::create(path).expect("Failed to create file");
-        let onto =
-            load_set_ontology(self.in_path.to_str().unwrap()).expect("Failed to load ontology");
+impl Runnable for DependencyWriter {
+    fn run(&self, onto: SetOntology<ArcStr>) {
+
         let set_index = onto.i();
         let dependency_mechanism = match self.method.as_str() {
             "growth" => GrowthDependency::build_dependencies,
@@ -103,6 +94,7 @@ impl Runnable<()> for DependencyWriter {
             }
         }
 
+        let file = File::create(self.out_path.clone()).expect("Failed to create file");
         let mut writer = BufWriter::new(file);
         serde_json::to_writer(&mut writer, &results).expect("Failed to write JSON to file");
     }

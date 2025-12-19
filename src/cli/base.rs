@@ -1,17 +1,8 @@
 use crate::util::error::StrixError;
 use clap::Parser;
+use horned_owl::model::{ArcStr, ForIRI};
+use horned_owl::ontology::set::SetOntology;
 
-pub trait Runnable<T>: Parser {
-    fn run(&self) -> T;
-    fn try_run() -> Result<T, StrixError> {
-        {
-            let cli = Self::try_parse();
-            match cli {
-                Ok(o) => Ok(o.run()),
-                Err(e) => Err(StrixError::Error {
-                    message: e.to_string(),
-                }),
-            }
-        }
-    }
+pub trait Runnable: Parser {
+    fn run(&self, onto: SetOntology<ArcStr>);
 }
