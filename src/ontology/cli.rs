@@ -1,7 +1,7 @@
 pub use crate::cli::base::Runnable;
 use crate::ontology::processors::annotations::Annotations;
 use crate::ontology::visitor::AxiomVisitor;
-use clap::{Args, Parser};
+use clap::Args;
 use horned_owl::model::{ArcStr, Literal};
 use serde_json::json;
 use std::collections::{HashMap, HashSet};
