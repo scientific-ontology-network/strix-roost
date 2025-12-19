@@ -1,7 +1,7 @@
 pub use crate::cli::base::Runnable;
 use crate::ontology::processors::annotations::Annotations;
 use crate::ontology::visitor::AxiomVisitor;
-use clap::Parser;
+use clap::{Args, Parser};
 use horned_owl::model::{ArcStr, Literal};
 use serde_json::json;
 use std::collections::{HashMap, HashSet};
@@ -9,9 +9,9 @@ use std::fs::File;
 use std::io::BufWriter;
 use horned_owl::ontology::set::SetOntology;
 
-/// Search for a pattern in a file and display the lines that contain it.
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+
+// Extract labels and definitions
+#[derive(Args)]
 pub struct AnnotationWriter {
     #[arg(short, long)]
     out_path: std::path::PathBuf,

@@ -1,5 +1,7 @@
 
 use clap::{Parser, Subcommand};
+use horned_owl::model::ArcStr;
+use horned_owl::ontology::set::SetOntology;
 use strix_roost::dependency::cli::{DependencyWriter, Runnable};
 use strix_roost::ontology::io::load_set_ontology;
 use strix_roost::ontology::cli::{AnnotationWriter};
@@ -12,29 +14,29 @@ struct Cli {
     in_path: std::path::PathBuf,
 
     #[command(subcommand)]
-    command: Command,
+    pub command: Command,
 }
 
 #[derive(Subcommand)]
 enum Command {
+
     Dependency(DependencyWriter),
+
     Annotations(AnnotationWriter),
 }
 
-fn main() {
-    match Cli::try_parse() {
-        Ok(cli) => {
-            let onto =
-                load_set_ontology(cli.in_path.to_str().unwrap()).expect("Failed to load ontology");
-            match cli.command {
-                Command::Dependency(c) => {
-                    c.run(onto);
-                },
-                Command::Annotations(c) => {
-                    c.run(onto);
-                },
-            }
+impl Runnable for Command {
+    fn run(&self, onto: SetOntology<ArcStr>) {
+        match self {
+            Command::Dependency(c) => c.run(onto),
+            Command::Annotations(c) => c.run(onto),
         }
-        Err(err) => {panic!("{err}")}
     }
+}
+
+fn main() {
+    let cli = Cli::parse();
+    let onto =
+        load_set_ontology(cli.in_path.to_str().unwrap()).expect("Failed to load ontology");
+    cli.command.run(onto);
 }

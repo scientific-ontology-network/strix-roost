@@ -6,7 +6,7 @@ use crate::dependency::growth::{remove_super_symbols, GrowthDependency};
 use crate::dependency::llm::ask;
 use crate::ontology::processors::annotations::{filter_literals_by_language, Annotations};
 use crate::ontology::visitor::AxiomVisitor;
-use clap::Parser;
+use clap::{Args};
 use horned_owl::io::ofn::writer::AsFunctional;
 use horned_owl::model::ArcStr;
 use indicatif::ProgressIterator;
@@ -16,9 +16,8 @@ use std::fs::File;
 use std::io::BufWriter;
 use horned_owl::ontology::set::SetOntology;
 
-/// Search for a pattern in a file and display the lines that contain it.
-#[derive(Parser, Debug)]
-#[command(version, about, long_about = None)]
+// Derive dependencies
+#[derive(Args)]
 pub struct DependencyWriter {
     #[arg(short, long)]
     method: String,
@@ -27,7 +26,7 @@ pub struct DependencyWriter {
     out_path: std::path::PathBuf,
 
     #[arg(short, long)]
-    llm: Option<bool>,
+    llm: bool,
 }
 
 impl Runnable for DependencyWriter {
@@ -49,7 +48,7 @@ impl Runnable for DependencyWriter {
         let placeholder = ArcStr::from("");
         annotations.visit_components(set_index.iter(), &placeholder);
         let mut results = HashMap::new();
-        if self.llm.unwrap_or(false) {
+        if self.llm {
             for (a, vs) in cleaned_dependencies.iter().progress() {
                 let a_t = a.underlying();
                 let english_labels = annotations.labels.iter().map(|(k,v)| (k.clone(),filter_literals_by_language(v.iter().collect(), &"en".to_string(), true))).collect();
