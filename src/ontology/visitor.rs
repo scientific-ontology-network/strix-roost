@@ -165,11 +165,11 @@ pub trait AxiomVisitor<T: ForIRI> {
     fn visit_class_assertion(&mut self, _ce: &ClassExpression<T>, _i: &Individual<T>, _target: &T) {
     }
 
-    fn visit_annotation_assertion(
+    fn visit_annotation_assertion<'a>(
         &mut self,
-        _subject: &AnnotationSubject<T>,
-        _ann: &Annotation<T>,
-        _target: &T,
+        _subject: &'a AnnotationSubject<T>,
+        _ann: &'a Annotation<T>,
+        _target: &'a T,
     ) {
     }
 

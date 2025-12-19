@@ -5,7 +5,7 @@ use crate::dependency::everything::{SemanticEverythingDependency, SyntacticEvery
 use crate::dependency::growth::{remove_super_symbols, GrowthDependency};
 use crate::dependency::llm::ask;
 use crate::ontology::io::load_set_ontology;
-use crate::ontology::processors::annotations::Annotations;
+use crate::ontology::processors::annotations::{filter_literals_by_language, Annotations};
 use crate::ontology::visitor::AxiomVisitor;
 use clap::Parser;
 use horned_owl::io::ofn::writer::AsFunctional;
@@ -63,7 +63,9 @@ impl Runnable<()> for DependencyWriter {
         if self.llm.unwrap_or(false) {
             for (a, vs) in cleaned_dependencies.iter().progress() {
                 let a_t = a.underlying();
-                match ask(a_t, vs, &annotations.definitions, &annotations.labels) {
+                let english_labels = annotations.labels.iter().map(|(k,v)| (k.clone(),filter_literals_by_language(v.iter().collect(), &"en".to_string(), true))).collect();
+                let english_defs = annotations.definitions.iter().map(|(k,v)| (k.clone(),filter_literals_by_language(v.iter().collect(), &"en".to_string(), true))).collect();
+                match ask(a_t, vs, &english_defs, &english_labels) {
                     Ok(result) => {
                         if !result.is_empty() {
                             let mut r = Vec::new();

@@ -4,12 +4,13 @@ use horned_owl::model::ForIRI;
 use serde_json::json;
 use std::collections::HashMap;
 use std::time::Duration;
+use itertools::Itertools;
 
 pub(crate) fn ask<'a, C: Clone, T: ForIRI + 'a>(
     a: &T,
     depends_on: &HashMap<Symbol<T>, C>,
-    definitions: &HashMap<T, String>,
-    labels: &HashMap<T, String>,
+    definitions: &HashMap<T, Vec<&String>>,
+    labels: &HashMap<T, Vec<&String>>,
 ) -> Result<HashMap<Symbol<T>, (C, bool)>, StrixError> {
     let request_url = "http://localhost:11434/api/generate";
 
@@ -24,8 +25,9 @@ pub(crate) fn ask<'a, C: Clone, T: ForIRI + 'a>(
             })
         }
     };
-    let label_a = labels.get(&a).unwrap_or(&a.to_string()).clone();
-    let def_a = definitions.get(&a).unwrap_or(&a.to_string()).clone();
+    let iri_a = a.to_string();
+    let label_a = labels.get(&a).unwrap_or(&vec![&iri_a])[0];
+    let def_a = definitions.get(&a).unwrap_or(&vec![&"No definition".to_string()]).iter().join("; ");
     let mut prompt = format!["Here is an ontology class and its definition:\n \
                 '{label_a}'\n\
                 Definition: '{def_a}'\n\
@@ -36,11 +38,11 @@ pub(crate) fn ask<'a, C: Clone, T: ForIRI + 'a>(
     } else {
         for (i, (dep, _)) in depends_on.iter().enumerate() {
             let d = dep.underlying();
-            let l = labels.get(&d).unwrap_or(&d.to_string()).clone();
+            let l = labels.get(&d).unwrap_or(&vec![&d.to_string()]).iter().join("; ");
             let def = definitions
                 .get(&d)
-                .unwrap_or(&"No definition".to_string())
-                .clone();
+                .unwrap_or(&vec![&"No definition".to_string()])
+                .iter().join("; ");
             prompt += format!["\t{i}: '{l}' -- Definition: '{def}'\n"].as_str();
         }
         let query_data = json![{
