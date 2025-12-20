@@ -70,16 +70,12 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for GrowthDependency {
         }
     }
 
+    // range(r) <= C
     fn dependency_from_object_property_range(
         _opr: &ObjectPropertyRange<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        [(Term::CE(&_opr.ce), Term::Role(&_opr.ope))]
-            .into_iter()
-            .chain(Self::dependencies_from_class_expression(&_opr.ce))
-            .chain(Self::dependencies_from_object_property_expression(
-                &_opr.ope,
-            ))
-            .collect()
+        // X -> r and X -> C, but not r -> C or C-> r
+        HashSet::new()
     }
 }
 
@@ -116,18 +112,6 @@ fn remove_targets<'a, S: Hash + Eq + Clone, C: Clone>(
     new_map
 }
 
-pub fn remove_super_expressions<'a, T: ForIRI>(
-    dep_map: &ComplexDependencyMap<'a, T, HashSet<&'a Component<T>>>,
-    ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-) -> ComplexDependencyMap<'a, T, HashSet<&'a Component<T>>>
-where
-    T: 'a,
-{
-    let sup_map: ComplexDependencyMap<'a, T, HashSet<&'a Component<T>>> =
-        transitive_closure(&build_super_map(ontology_iter));
-    remove_targets(&dep_map, &sup_map)
-}
-
 pub fn remove_super_symbols<'a, T: ForIRI>(
     dep_map: &DependencyMap<T, HashSet<&'a Component<T>>>,
     ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
@@ -136,7 +120,7 @@ where
     T: 'a,
 {
     let sup_map: DependencyMap<T, HashSet<&'a Component<T>>> =
-        reduce_map(&transitive_closure(&build_super_map(ontology_iter)));
+        transitive_closure(&build_super_map(ontology_iter));
     remove_targets(&dep_map, &sup_map)
 }
 

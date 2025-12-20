@@ -89,6 +89,16 @@ impl<T:ForIRI> SyntaxBasedDependency<T> for SyntacticEmptinessDependency {
             .collect()
     }
 
+    fn dependencies_from_object_union_of<'a>(x: &'a ClassExpression<T>, ces: &'a Vec<ClassExpression<T>>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        ces.into_iter()
+            .flat_map(|ce2| {
+                [(Term::CE(ce2), Term::CE(x))]
+                    .into_iter()
+                    .chain(Self::dependencies_from_class_expression(ce2))
+            })
+            .collect()
+    }
+
     fn dependencies_from_object_some_values_from<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         [
             (Term::CE(x), Term::CE(bce)),
@@ -100,11 +110,10 @@ impl<T:ForIRI> SyntaxBasedDependency<T> for SyntacticEmptinessDependency {
             .collect()
     }
 
-    // X = range(r)
+    // range(r) <= C
     fn dependency_from_object_property_range(_opr: &ObjectPropertyRange<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         [
-            (Term::CE(&_opr.ce),Term::Role(&_opr.ope)), // X -> r
-            (Term::Role(&_opr.ope), Term::CE(&_opr.ce)) // r -> X
+            (Term::Role(&_opr.ope), Term::CE(&_opr.ce)) // r -> X, X -> C
         ]
             .into_iter()
             .chain(Self::dependencies_from_class_expression(&_opr.ce))

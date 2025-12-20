@@ -45,7 +45,7 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
             }
             map.get_mut(&a).unwrap().insert(b, c);
         }
-        reduce_map(&transitive_closure(&map))
+        transitive_closure(&map)
     }
 
     fn dependencies_from_components<'a>(

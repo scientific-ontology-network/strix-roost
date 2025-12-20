@@ -130,12 +130,12 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
         }
     }
 
-    // X = range(r)
+    // range(r) <= C
     fn dependency_from_object_property_range(
         _opr: &ObjectPropertyRange<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         [
-            (Term::Role(&_opr.ope), Term::CE(&_opr.ce)), // r -> X
+            (Term::Role(&_opr.ope), Term::CE(&_opr.ce)), // r -> X, X -> C
         ]
         .into_iter()
         .chain(Self::dependencies_from_class_expression(&_opr.ce))

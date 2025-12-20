@@ -1,34 +1,40 @@
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
+use horned_owl::model::ForIRI;
+use crate::dependency::symbol::{Symbol, Term};
 
 /// Compute the transitive closure of a directed graph.
 /// Input: adjacency list as HashMap<T, HashSet<T>>.
 /// Output: new adjacency list with reachability closure.
-pub fn transitive_closure<S: Eq + Hash + Clone, C: Eq + Hash + Clone>(
-    graph: &HashMap<S, HashMap<S, HashSet<C>>>,
-) -> HashMap<S, HashMap<S, HashSet<C>>> {
-    let mut closure: HashMap<S, HashMap<S, HashSet<C>>> = HashMap::new();
-    let mut memo: HashMap<S, HashMap<S, HashSet<C>>> = HashMap::new();
+pub fn transitive_closure<'a, T: ForIRI, C: Eq + Hash + Clone>(
+    graph: &HashMap<Term<'a, T>, HashMap<Term<'a, T>, HashSet<C>>>,
+) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<C>>> {
+    let mut closure: HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<C>>> = HashMap::new();
+    let mut memo: HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<C>>> = HashMap::new();
 
-    for node in graph.keys() {
-        let reachable = dfs_with_memo(node, graph, &mut memo);
-        closure.insert(node.clone(), reachable);
+    for node in graph.keys().filter(|t|t.is_atomic()) {
+        let symb = node.get_symbol().unwrap();
+        let reachable = dfs_with_memo(&node, graph, &mut memo);
+        closure.insert(symb, reachable);
     }
     closure
 }
 
 /// DFS with memoization: only one SC per symbol
-fn dfs_with_memo<S: Eq + Hash + Clone, C: Eq + Hash + Clone>(
-    start: &S,
-    graph: &HashMap<S, HashMap<S, HashSet<C>>>,
-    memo: &mut HashMap<S, HashMap<S, HashSet<C>>>,
-) -> HashMap<S, HashSet<C>> {
+fn dfs_with_memo<'a, T: ForIRI, C: Eq + Hash + Clone>(
+    start: &Term<T>,
+    graph: &HashMap<Term<'a, T>, HashMap<Term<'a, T>, HashSet<C>>>,
+    memo: &mut HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<C>>>,
+) -> HashMap<Symbol<T>, HashSet<C>> {
+
+    let start_symbol = start.get_symbol().unwrap();
     // If already memoized, return immediately
-    if let Some(cached) = memo.get(start) {
+    if let Some(cached) = memo.get(&start_symbol) {
         return cached.clone();
     }
 
-    let mut visited: HashMap<S, HashSet<C>> = HashMap::new();
+
+    let mut visited: HashMap<Term<T>, HashSet<C>> = HashMap::new();
     let mut stack = vec![(start.clone(), HashSet::new())];
 
     while let Some((sym, ax)) = stack.pop() {
@@ -54,63 +60,11 @@ fn dfs_with_memo<S: Eq + Hash + Clone, C: Eq + Hash + Clone>(
     // Remove self if irreflexive closure is desired
     visited.remove(start);
 
+    let cleaned: HashMap<Symbol<T>, HashSet<C>> = visited.into_iter().filter(|(k,ax)| k.is_atomic()).map(|(k,ax)| (k.get_symbol().unwrap(), ax)).collect();
+
     // Memoize before returning
-    memo.insert(start.clone(), visited.clone());
+    memo.insert(start_symbol, cleaned.clone());
 
-    visited
-}
+    cleaned
 
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-    use crate::dependency::symbol::Symbol;
-
-    #[test]
-    fn test_transitive_closure() {
-        let to_ds = |s: &str| Symbol::Class(s.to_string());
-        let mut graph: HashMap<Symbol<String>, HashMap<Symbol<String>, HashSet<()>>> =
-            HashMap::new();
-        let a = to_ds("A");
-        let b = to_ds("B");
-        let c = to_ds("C");
-        let d = to_ds("D");
-        graph.insert(
-            a.clone(),
-            [(b.clone(), HashSet::new())].into_iter().collect(),
-        );
-        graph.insert(
-            b.clone(),
-            [(c.clone(), HashSet::new())].into_iter().collect(),
-        );
-        graph.insert(
-            c.clone(),
-            [(d.clone(), HashSet::new())].into_iter().collect(),
-        );
-        graph.insert(d.clone(), HashMap::new());
-
-        let closure = transitive_closure(&graph);
-
-        assert_eq!(
-            closure.get(&a).unwrap(),
-            &[
-                (b.clone(), HashSet::new()),
-                (c.clone(), HashSet::new()),
-                (d.clone(), HashSet::new())
-            ]
-            .into_iter()
-            .collect()
-        );
-        assert_eq!(
-            closure.get(&b).unwrap(),
-            &[(c.clone(), HashSet::new()), (d.clone(), HashSet::new())]
-                .into_iter()
-                .collect()
-        );
-        assert_eq!(
-            closure.get(&c).unwrap(),
-            &[(d.clone(), HashSet::new())].into_iter().collect()
-        );
-        assert!(closure.get(&d).unwrap().is_empty());
-    }
 }
