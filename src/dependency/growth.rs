@@ -1,12 +1,9 @@
-use crate::dependency::base::{ComplexDependencyMap, DependencyBuilder, DependencyMap};
+use crate::dependency::base::{build_top, ComplexDependencyMap, DependencyBuilder, DependencyMap};
 use crate::dependency::symbol::{Symbol, Term};
 use crate::dependency::syntax_based::{reduce_map, SyntaxBasedDependency};
 use crate::util::graph::transitive_closure;
 use core::cmp::Eq;
-use horned_owl::model::{
-    AnnotatedComponent, ClassExpression, Component, EquivalentClasses, EquivalentObjectProperties,
-    ForIRI, ObjectPropertyExpression, ObjectPropertyRange, SubObjectPropertyExpression,
-};
+use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, EquivalentClasses, EquivalentObjectProperties, ForIRI, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, SubObjectPropertyExpression};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
@@ -52,9 +49,15 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for GrowthDependency {
         ope: &'a ObjectPropertyExpression<T>,
         bce: &'a ClassExpression<T>,
     ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        let base = match *bce == build_top() {
+            true => {vec![(Term::Role(ope), Term::CE(x))]}
+            false => {vec![]}
+        };
         [(Term::CE(x), Term::CE(bce)), (Term::CE(x), Term::Role(ope))]
             .into_iter()
+            .chain(base)
             .chain(Self::dependencies_from_class_expression(bce))
+            .chain(Self::dependencies_from_object_property_expression(ope))
             .collect()
     }
 
@@ -76,5 +79,16 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for GrowthDependency {
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         // X -> r and X -> C, but not r -> C or C-> r
         HashSet::new()
+    }
+
+    // domain(r) <= C
+    fn dependency_from_object_property_domain(
+        opd: &ObjectPropertyDomain<T>,
+    ) -> HashSet<(Term<T>, Term<T>)> {
+        ([(Term::Role(&opd.ope), Term::CE(&opd.ce))]) // r -> X, X -> C
+            .into_iter()
+            .chain(Self::dependencies_from_class_expression(&opd.ce))
+            .chain(Self::dependencies_from_object_property_expression(&opd.ope))
+            .collect()
     }
 }

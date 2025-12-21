@@ -1,10 +1,7 @@
 use crate::dependency::base::{DependencyBuilder, DependencyMap};
 use crate::dependency::symbol::{Symbol, Term};
 use crate::dependency::syntax_based::SyntaxBasedDependency;
-use horned_owl::model::{
-    AnnotatedComponent, Build, Class, ClassExpression, Component, ForIRI, MutableOntology,
-    ObjectPropertyExpression, ObjectPropertyRange, SubClassOf,
-};
+use horned_owl::model::{AnnotatedComponent, Build, Class, ClassExpression, Component, ForIRI, MutableOntology, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, SubClassOf};
 use horned_owl::ontology::set::SetOntology;
 use horned_owl::vocab::OWL;
 use indicatif::ProgressIterator;
@@ -91,6 +88,17 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
                     .into_iter()
                     .chain(Self::dependencies_from_class_expression(ce2))
             })
+            .collect()
+    }
+
+    // domain(r) <= C
+    fn dependency_from_object_property_domain(
+        opd: &ObjectPropertyDomain<T>,
+    ) -> HashSet<(Term<T>, Term<T>)> {
+        ([(Term::Role(&opd.ope), Term::CE(&opd.ce))]) // r -> X, X -> C
+            .into_iter()
+            .chain(Self::dependencies_from_class_expression(&opd.ce))
+            .chain(Self::dependencies_from_object_property_expression(&opd.ope))
             .collect()
     }
 

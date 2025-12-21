@@ -6,6 +6,7 @@ use crate::dependency::symbol::{Symbol, Term};
 use horned_owl::model::*;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
+use horned_owl::vocab::OWL;
 use crate::util::graph::transitive_closure;
 
 pub type ComplexDependencyMap<'a, T, C> = HashMap<Term<'a, T>, HashMap<Term<'a, T>, C>>;
@@ -144,4 +145,14 @@ pub fn invert_map<S: Hash + Eq + Clone, C: Clone>(
         }
     }
     new_map
+}
+
+pub fn build_top<T:ForIRI>() -> ClassExpression<T> {
+    let builder = Build::<T>::new();
+    ClassExpression::Class(Class(builder.iri(OWL::Thing)))
+}
+
+pub fn build_bottom<T:ForIRI>() -> ClassExpression<T> {
+    let builder = Build::<T>::new();
+    ClassExpression::Class(Class(builder.iri(OWL::Nothing)))
 }
