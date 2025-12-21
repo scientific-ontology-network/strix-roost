@@ -6,3 +6,4 @@ pub mod growth;
 mod llm;
 pub mod symbol;
 mod syntax_based;
+mod hop;

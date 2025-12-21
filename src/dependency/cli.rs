@@ -1,8 +1,8 @@
 pub use crate::cli::base::Runnable;
-use crate::dependency::base::DependencyBuilder;
+use crate::dependency::base::{remove_super_symbols, DependencyBuilder};
 use crate::dependency::empty::{SemanticEmptinessDependency, SyntacticEmptinessDependency};
 use crate::dependency::everything::{SemanticEverythingDependency, SyntacticEverythingDependency};
-use crate::dependency::growth::{remove_super_symbols, GrowthDependency};
+use crate::dependency::growth::{GrowthDependency};
 use crate::dependency::llm::ask;
 use crate::ontology::processors::annotations::{filter_literals_by_language, Annotations};
 use crate::ontology::visitor::AxiomVisitor;
@@ -96,3 +96,4 @@ impl Runnable for DependencyWriter {
         serde_json::to_writer(&mut writer, &results).expect("Failed to write JSON to file");
     }
 }
+

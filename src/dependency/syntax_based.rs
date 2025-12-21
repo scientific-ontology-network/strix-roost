@@ -16,6 +16,7 @@ use horned_owl::model::{
 };
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
+use std::hash::Hash;
 
 fn quasiproduct<T: Eq + Clone>(it: Vec<T>) -> Vec<(T, T)> {
     it.iter()
