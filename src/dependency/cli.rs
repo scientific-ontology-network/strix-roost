@@ -15,6 +15,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
 use horned_owl::ontology::set::SetOntology;
+use crate::dependency::hop::HopDependency;
 
 // Derive dependencies
 #[derive(Args)]
@@ -39,6 +40,7 @@ impl Runnable for DependencyWriter {
             "empty" => SyntacticEmptinessDependency::build_dependencies,
             "everything_sem" => SemanticEverythingDependency::build_dependencies,
             "everything" => SyntacticEverythingDependency::build_dependencies,
+            "hop" => HopDependency::build_dependencies,
             _ => panic!("Unknown dependency mechanism {}", self.method),
         };
 
