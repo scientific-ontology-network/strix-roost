@@ -1,11 +1,8 @@
-use crate::dependency::base::{build_top, ComplexDependencyMap, DependencyBuilder, DependencyMap};
+use crate::dependency::base::{build_top, DependencyBuilder};
 use crate::dependency::symbol::{Symbol, Term};
-use crate::dependency::syntax_based::{reduce_map, SyntaxBasedDependency};
-use crate::util::graph::transitive_closure;
-use core::cmp::Eq;
-use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, EquivalentClasses, EquivalentObjectProperties, ForIRI, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, SubObjectPropertyExpression};
+use crate::dependency::syntax_based::SyntaxBasedDependency;
+use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, ForIRI, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange};
 use std::collections::{HashMap, HashSet};
-use std::hash::Hash;
 
 pub struct GrowthDependency {}
 
@@ -84,7 +81,7 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for GrowthDependency {
     // domain(r) <= C
     fn dependency_from_object_property_domain(
         opd: &ObjectPropertyDomain<T>,
-    ) -> HashSet<(Term<T>, Term<T>)> {
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         ([(Term::Role(&opd.ope), Term::CE(&opd.ce))]) // r -> X, X -> C
             .into_iter()
             .chain(Self::dependencies_from_class_expression(&opd.ce))

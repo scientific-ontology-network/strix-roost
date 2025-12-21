@@ -60,7 +60,7 @@ fn dfs_with_memo<'a, T: ForIRI, C: Eq + Hash + Clone>(
     // Remove self if irreflexive closure is desired
     visited.remove(start);
 
-    let cleaned: HashMap<Symbol<T>, HashSet<C>> = visited.into_iter().filter(|(k,ax)| k.is_atomic()).map(|(k,ax)| (k.get_symbol().unwrap(), ax)).collect();
+    let cleaned: HashMap<Symbol<T>, HashSet<C>> = visited.into_iter().filter(|(k,_ax)| k.is_atomic()).map(|(k,ax)| (k.get_symbol().unwrap(), ax)).collect();
 
     // Memoize before returning
     memo.insert(start_symbol, cleaned.clone());

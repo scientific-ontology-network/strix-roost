@@ -94,7 +94,7 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
     // domain(r) <= C
     fn dependency_from_object_property_domain(
         opd: &ObjectPropertyDomain<T>,
-    ) -> HashSet<(Term<T>, Term<T>)> {
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         ([(Term::Role(&opd.ope), Term::CE(&opd.ce))]) // r -> X, X -> C
             .into_iter()
             .chain(Self::dependencies_from_class_expression(&opd.ce))
