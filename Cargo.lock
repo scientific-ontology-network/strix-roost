@@ -1535,6 +1535,7 @@ dependencies = [
  "horned-owl",
  "indicatif",
  "itertools 0.14.0",
+ "rayon",
  "reqwest",
  "serde",
  "serde_json",
