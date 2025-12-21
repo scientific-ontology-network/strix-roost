@@ -656,29 +656,3 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
         ope: &'a ObjectPropertyExpression<T>,
     ) -> HashSet<(Term<'a, T>, Term<'a, T>)>;
 }
-
-pub fn reduce_map<T: ForIRI, C: Clone>(map: &ComplexDependencyMap<T, C>) -> DependencyMap<T, C> {
-    // Get all dependencies with atomic left-hand sides
-    let non_atomic_left_sides = map
-        .into_iter()
-        .filter(|(k, _)| k.is_atomic())
-        .map(|(k, v)| (k.get_symbol().unwrap(), v));
-    // Filter out non-atomic right-hand sides
-    let non_atomic_right_sides: Vec<(Symbol<T>, HashMap<Symbol<T>, C>)> = non_atomic_left_sides
-        .map(|(k, vmap)| {
-            (
-                k.clone(),
-                vmap.into_iter()
-                    .filter(|(s, _)| s.is_atomic())
-                    .map(|(s, c)| (s.get_symbol().unwrap(), (*c).clone()))
-                    .collect::<HashMap<Symbol<T>, C>>(),
-            )
-        })
-        .collect();
-    // Filter all entries with empty left-hand sides
-    let non_empty_right_sides: DependencyMap<T, C> = non_atomic_right_sides
-        .into_iter()
-        .filter(|(_, vs)| !vs.is_empty())
-        .collect();
-    non_empty_right_sides
-}
