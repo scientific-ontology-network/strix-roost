@@ -27,7 +27,16 @@ impl<T:ForIRI> DependencyBuilder<T> for SemanticEmptinessDependency {
         ConceptInclusion{
             subclass: Rc::new(Concept::AtomicConcept(Rc::new(AtomicConcept{id: c.to_string()}))),
             superclass: Rc::new(Concept::AtomicConcept(Rc::new(AtomicConcept{id: OWL::Nothing.to_string()})))})));
-        compute_semantic_dependency(ontology_iter, ax_builder)
+        compute_semantic_dependency(ontology_iter, ax_builder, derive_dependencies_from_inferred_axiom)
+    }
+}
+
+fn derive_dependencies_from_inferred_axiom(sub: (Rc<AtomicConcept>, Rc<AtomicConcept>)) -> Vec<String>{
+    let (a,b) = sub;
+    if (b.id == OWL::Nothing.to_string().as_str()) {
+        [(*a).id.clone()].into()
+    } else {
+        Vec::new()
     }
 }
 

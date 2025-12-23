@@ -23,7 +23,16 @@ impl<T: ForIRI> DependencyBuilder<T> for SemanticEverythingDependency {
                 subclass: Rc::new(Concept::AtomicConcept(Rc::new(AtomicConcept { id: OWL::Thing.to_string() }))),
                 superclass: Rc::new(Concept::AtomicConcept(Rc::new(AtomicConcept { id: c.to_string() })))
             })));
-        compute_semantic_dependency(ontology_iter, ax_builder)
+        compute_semantic_dependency(ontology_iter, ax_builder, derive_dependencies_from_inferred_axiom)
+    }
+}
+
+fn derive_dependencies_from_inferred_axiom(sub: (Rc<AtomicConcept>, Rc<AtomicConcept>)) -> Vec<String>{
+    let (a,b) = sub;
+    if (a.id == OWL::Thing.to_string().as_str()) {
+        [(*b).id.clone()].into()
+    } else {
+        Vec::new()
     }
 }
 
