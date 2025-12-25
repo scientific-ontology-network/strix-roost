@@ -1,11 +1,10 @@
+use crossbeam::{channel, scope};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
-use std::sync::Arc;
-use std::sync::mpsc::channel;
-use horned_owl::model::{AnnotatedComponent, ArcStr, Build, Class, ClassExpression, Component, ForIRI, MutableOntology, SubClassOf, IRI};
+use std::thread;
+use horned_owl::model::{AnnotatedComponent, Build, Component, ForIRI, MutableOntology};
 use horned_owl::ontology::set::SetOntology;
-use horned_owl::vocab::OWL;
-use indicatif::ProgressIterator;
+use indicatif::ParallelProgressIterator;
 use rayon::prelude::*;
 use whelk::whelk::model::{AtomicConcept, Axiom};
 use whelk::whelk::owl::translate_ontology;
@@ -32,20 +31,47 @@ pub fn compute_semantic_dependency<'a,T:ForIRI + 'a + Send + Sync>(ontology_iter
 
     let declared_classes = declared_classes.into_iter().map(|iri| iri.underlying()).collect::<Vec<_>>();
 
-    let mut dependencies = HashMap::new();
     let ontology : SetOntology<T> = SetOntology::from_iter(axioms.into_iter().cloned());
-    let (tx, rx) = channel();
-    declared_classes.into_par_iter().flat_map(|c| calculate_dependencies(&ontology, c, extra_axiom_builder,derive_dependencies_from_inferred_axiom)).for_each( |item| {
-        tx.send(item).unwrap();
-    });
+    let (tx, rx) = channel::bounded::<(Symbol<T>, Symbol<T>)>(1024);
 
-    for (l,r) in rx.into_iter(){
-        if !dependencies.contains_key(&l) {
-            dependencies.insert(l.clone(), HashMap::new());
-        }
-        dependencies.get_mut(&l).unwrap().insert(r.clone(), HashSet::new());
+    // keep one sender in this scope
+    let tx_for_workers = tx.clone();
 
-    };
+    let dependencies = scope(|s| {
+        let consumer = s.spawn(|_| {
+            let mut deps: HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<_>>> =
+                HashMap::new();
+
+            for (l, r) in rx.iter() {
+                deps.entry(l)
+                    .or_insert_with(HashMap::new)
+                    .entry(r)
+                    .or_insert_with(HashSet::new);
+            }
+
+            deps
+        });
+
+        declared_classes
+            .into_par_iter()
+            .progress()
+            .flat_map(|c| {
+                calculate_dependencies(
+                    &ontology,
+                    c,
+                    extra_axiom_builder,
+                    derive_dependencies_from_inferred_axiom,
+                )
+            })
+            .for_each_with(tx_for_workers, |tx, item| {
+                tx.send(item).expect("consumer alive");
+            });
+
+        drop(tx); // ✅ closes the channel when workers are done
+
+        consumer.join().unwrap()
+    })
+        .unwrap();
 
 
     dependencies.into_iter().collect()

@@ -1,4 +1,4 @@
-use crate::dependency::base::{ComplexDependencyMap, DependencyBuilder, DependencyMap};
+use crate::dependency::base::DependencyBuilder;
 use crate::dependency::symbol::{Symbol, Term};
 use crate::util::graph::transitive_closure;
 use horned_owl::model::{

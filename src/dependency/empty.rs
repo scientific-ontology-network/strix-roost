@@ -1,15 +1,11 @@
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
-use horned_owl::model::{AnnotatedComponent, Build, Class, ClassExpression, Component, ForIRI, MutableOntology, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, SubClassOf};
-use horned_owl::ontology::set::SetOntology;
+use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, ForIRI, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange};
 use horned_owl::vocab::OWL;
-use indicatif::ProgressIterator;
 use whelk::whelk::model::{Axiom, Concept, ConceptInclusion, AtomicConcept};
 
 use crate::dependency::base::{build_top, DependencyBuilder, DependencyMap};
 use crate::dependency::symbol::{Term, Symbol};
-use whelk::whelk::owl::translate_ontology;
-use whelk::whelk::reasoner::assert;
 use crate::dependency::semantics_based::compute_semantic_dependency;
 use crate::dependency::syntax_based::SyntaxBasedDependency;
 
@@ -33,7 +29,7 @@ impl<T:ForIRI + Send + Sync> DependencyBuilder<T> for SemanticEmptinessDependenc
 
 fn derive_dependencies_from_inferred_axiom(sub: (Rc<AtomicConcept>, Rc<AtomicConcept>)) -> Vec<String>{
     let (a,b) = sub;
-    if (b.id == OWL::Nothing.to_string().as_str()) {
+    if b.id == OWL::Nothing.to_string().as_str()  {
         [(*a).id.clone()].into()
     } else {
         Vec::new()
