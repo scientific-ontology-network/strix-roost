@@ -72,7 +72,7 @@ fn calculate_dependencies<T: ForIRI>(
             let l = Symbol::Class(c.clone());
             let r_iri = builder.iri(r);
             let r = Symbol::Class(r_iri.underlying());
-            result.push((l,r));
+            result.push((r,l));
         }
 
     }
