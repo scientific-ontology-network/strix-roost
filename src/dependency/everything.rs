@@ -14,7 +14,7 @@ use crate::dependency::semantics_based::compute_semantic_dependency;
 
 pub struct SemanticEverythingDependency {}
 
-impl<T: ForIRI> DependencyBuilder<T> for SemanticEverythingDependency {
+impl<T: ForIRI + Send + Sync> DependencyBuilder<T> for SemanticEverythingDependency {
     fn build_dependencies<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
     ) -> DependencyMap<T, HashSet<&'a Component<T>>> {

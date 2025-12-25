@@ -16,7 +16,7 @@ use crate::dependency::syntax_based::SyntaxBasedDependency;
 pub struct SemanticEmptinessDependency {}
 
 
-impl<T:ForIRI> DependencyBuilder<T> for SemanticEmptinessDependency {
+impl<T:ForIRI + Send + Sync> DependencyBuilder<T> for SemanticEmptinessDependency {
 
     fn build_dependencies<'a> (
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
