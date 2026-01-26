@@ -6,3 +6,5 @@ To create a file `result.json` that contains all dependencies call:
 ```
 strix-roost --in-path <ontology> dependency --method <dependency> --out-path result.json
 ```
+
+Available methods are "growth", "empty", "everything", "hop"
