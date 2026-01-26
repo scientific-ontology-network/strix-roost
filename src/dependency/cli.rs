@@ -44,14 +44,14 @@ impl Runnable for DependencyWriter {
         let mut results = HashMap::new();
 
         for (a, vs) in cleaned_dependencies.iter() {
-            let mut r = Vec::new();
+            let mut r = json!({});
             for (k, k_ax) in vs {
                 let k_iri = k.underlying();
                 let ax_list: Vec<String> = k_ax
                     .iter()
                     .map(|&ax| ax.as_functional().to_string())
                     .collect();
-                r.push(json!({"iri": k_iri.to_string(), "cause": ax_list}));
+                r[k_iri.to_string()] = json!({"cause": ax_list});
             }
             results.insert(a.underlying().to_string(), r);
         }
