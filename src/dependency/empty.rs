@@ -1,9 +1,7 @@
 use std::collections::{HashMap, HashSet};
-use std::rc::Rc;
-use horned_owl::model::{AnnotatedComponent, Build, ClassExpression, Component, ForIRI, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange};
-use horned_owl::vocab::OWL;
+use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, ForIRI, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange};
 
-use crate::dependency::base::{build_top, DependencyBuilder, DependencyMap};
+use crate::dependency::base::{build_top, DependencyBuilder};
 use crate::dependency::symbol::{Term, Symbol};
 use crate::dependency::syntax_based::SyntaxBasedDependency;
 
