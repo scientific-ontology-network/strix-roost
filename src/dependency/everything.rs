@@ -1,36 +1,11 @@
 use crate::dependency::base::{DependencyBuilder, DependencyMap};
 use crate::dependency::symbol::{Symbol, Term};
 use crate::dependency::syntax_based::SyntaxBasedDependency;
-use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, ForIRI, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange};
+use horned_owl::model::{AnnotatedComponent, Build, ClassExpression, Component, ForIRI, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange};
 use horned_owl::vocab::OWL;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
-use whelk::whelk::model::{AtomicConcept, Axiom, Concept, ConceptInclusion};
-use crate::dependency::semantics_based::compute_semantic_dependency;
 
-pub struct SemanticEverythingDependency {}
-
-impl<T: ForIRI + Send + Sync> DependencyBuilder<T> for SemanticEverythingDependency {
-    fn build_dependencies<'a>(
-        ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-    ) -> DependencyMap<T, HashSet<&'a Component<T>>> {
-        let ax_builder = |c: T| Rc::new(Axiom::ConceptInclusion(Rc::new(
-            ConceptInclusion {
-                subclass: Rc::new(Concept::AtomicConcept(Rc::new(AtomicConcept { id: OWL::Thing.to_string() }))),
-                superclass: Rc::new(Concept::AtomicConcept(Rc::new(AtomicConcept { id: c.to_string() })))
-            })));
-        compute_semantic_dependency(ontology_iter, ax_builder, derive_dependencies_from_inferred_axiom)
-    }
-}
-
-fn derive_dependencies_from_inferred_axiom(sub: (Rc<AtomicConcept>, Rc<AtomicConcept>)) -> Vec<String>{
-    let (a,b) = sub;
-    if a.id == OWL::Thing.to_string().as_str()  {
-        [(*b).id.clone()].into()
-    } else {
-        Vec::new()
-    }
-}
 
 pub struct SyntacticEverythingDependency {}
 

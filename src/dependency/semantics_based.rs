@@ -12,7 +12,7 @@ use whelk::whelk::reasoner::assert;
 use crate::dependency::base::DependencyMap;
 use crate::dependency::symbol::Symbol;
 
-pub fn compute_semantic_dependency<'a,T:ForIRI + 'a + Send + Sync>(ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>, extra_axiom_builder: fn(T) -> Rc<Axiom>, derive_dependencies_from_inferred_axiom: fn((Rc<AtomicConcept>, Rc<AtomicConcept>)) -> Vec<String>) -> DependencyMap<T, HashSet<&'a Component<T>>>{
+pub fn compute_semantic_dependency<'a,T:ForIRI + 'a + Send + Sync>(ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>, extra_axiom_builder: fn(T) -> Rc<Axiom>, derive_dependencies_from_inferred_axiom: fn(Symbol<T>, (Rc<AtomicConcept>, Rc<AtomicConcept>)) -> Vec<(Symbol<T>,Symbol<T>)>) -> DependencyMap<T, HashSet<&'a Component<T>>>{
     let axioms : Vec<_> = ontology_iter.collect();
 
     let mut declared_classes = HashSet::new();
@@ -81,26 +81,24 @@ fn calculate_dependencies<T: ForIRI>(
     ontology: &SetOntology<T>,
     c: T,
     extra_axiom_builder: fn(T) -> Rc<Axiom>,
-    derive_dependencies_from_inferred_axiom: fn((Rc<AtomicConcept>, Rc<AtomicConcept>)) -> Vec<String>)
+    derive_dependencies_from_inferred_axiom: fn(Symbol<T>, (Rc<AtomicConcept>, Rc<AtomicConcept>)) -> Vec<(Symbol<T>, Symbol<T>)>)
     -> Vec<(Symbol<T>, Symbol<T>)>
 {
 
     let mut result = Vec::new();
-    let builder = Build::<T>::new();
+
     let mut whelk_axioms = translate_ontology(&ontology);
     let ax = extra_axiom_builder(c.clone());
     whelk_axioms.insert(ax.clone());
 
     let whelk = assert(&whelk_axioms);
     for sub in whelk.named_subsumptions() {
-        let derived_dependencies = derive_dependencies_from_inferred_axiom(sub);
-        for r in derived_dependencies.into_iter() {
-            let l = Symbol::Class(c.clone());
-            let r_iri = builder.iri(r);
-            let r = Symbol::Class(r_iri.underlying());
-            result.push((r,l));
-        }
+        let l = Symbol::Class(c.clone());
+        let derived_dependencies = derive_dependencies_from_inferred_axiom(l, sub);
+        for d in derived_dependencies.into_iter() {
 
+            result.push(d);
+        }
     }
     result
 }
