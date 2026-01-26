@@ -1,5 +1,6 @@
 [package]
 name = "strix-roost"
+description = "A high-performance command-line tool to process ontologies and calculate dependencies between symbols of an ontology."
 version = "0.1.0"
 edition = "2021"
 license-file = "LICENSE"
