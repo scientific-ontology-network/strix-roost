@@ -2,6 +2,9 @@
 name = "strix-roost"
 version = "0.1.0"
 edition = "2021"
+license-file = "LICENSE"
+keywords = ["ontology", "semantics", "dependency", "ontology-quality"]
+repository = "https://github.com/scientific-ontology-network/strix-roost"
 
 [lib]
 name = "strix_roost"           # Libraries cannot contain hyphens!
