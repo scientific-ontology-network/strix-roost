@@ -24,7 +24,7 @@ fn load_rdf_ontology(path: &str) -> Result<SetOntology<ArcStr>, StrixError> {
         reader,
         &build,
         ParserConfiguration {
-            rdf: RDFParserConfiguration { lax: true },
+            rdf: RDFParserConfiguration { format: None, lax: true },
             ..Default::default()
         },
     );
