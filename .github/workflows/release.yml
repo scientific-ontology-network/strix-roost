@@ -76,11 +76,12 @@ jobs:
       - name: Archive
         shell: bash
         run: |
-          cd dist
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            zip ../${BIN_NAME}-${{ matrix.artifact }}.zip *
+          if [ "${{ matrix.os }}" == "windows-latest" ]; then
+            # PowerShell compress for Windows
+            powershell -Command "Compress-Archive -Path target/${{ matrix.target }}/release/${BIN_NAME}.exe -DestinationPath ${BIN_NAME}-${{ matrix.artifact }}.zip"
           else
-            tar czf ../${BIN_NAME}-${{ matrix.artifact }}.tar.gz *
+            cp target/${{ matrix.target }}/release/${BIN_NAME} dist/
+            tar czf ${BIN_NAME}-${{ matrix.artifact }}.tar.gz -C dist .
           fi
 
       - name: Upload artifact
