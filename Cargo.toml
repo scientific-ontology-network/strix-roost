@@ -7,6 +7,7 @@ license-file = "LICENSE"
 keywords = ["ontology", "semantics", "dependency", "ontology-quality"]
 repository = "https://github.com/scientific-ontology-network/strix-roost"
 readme = "README.md"
+exclude = [".gitignore"]
 
 [lib]
 name = "strix_roost"           # Libraries cannot contain hyphens!
