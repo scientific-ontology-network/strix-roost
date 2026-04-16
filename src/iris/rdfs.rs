@@ -11,6 +11,7 @@ pub const RDFS_LABEL: &str = "http://www.w3.org/2000/01/rdf-schema#label";
 pub const RDFS_COMMENT: &str = "http://www.w3.org/2000/01/rdf-schema#comment";
 pub const RDFS_MEMBER: &str = "http://www.w3.org/2000/01/rdf-schema#member";
 pub const RDFS_CONTAINER: &str = "http://www.w3.org/2000/01/rdf-schema#Container";
-pub const RDFS_CONTAINERMEMBERSHIPPROPERTY: &str = "http://www.w3.org/2000/01/rdf-schema#ContainerMembershipProperty";
+pub const RDFS_CONTAINERMEMBERSHIPPROPERTY: &str =
+    "http://www.w3.org/2000/01/rdf-schema#ContainerMembershipProperty";
 pub const RDFS_SEEALSO: &str = "http://www.w3.org/2000/01/rdf-schema#seeAlso";
 pub const RDFS_ISDEFINEDBY: &str = "http://www.w3.org/2000/01/rdf-schema#isDefinedBy";

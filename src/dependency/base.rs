@@ -3,11 +3,11 @@
 //! ontological components such as class and property symbols.
 
 use crate::dependency::symbol::{Symbol, Term};
+use crate::util::graph::transitive_closure;
 use horned_owl::model::*;
+use horned_owl::vocab::OWL;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
-use horned_owl::vocab::OWL;
-use crate::util::graph::transitive_closure;
 
 pub type ComplexDependencyMap<'a, T, C> = HashMap<Term<'a, T>, HashMap<Term<'a, T>, C>>;
 pub type DependencyMap<T, C> = HashMap<Symbol<T>, HashMap<Symbol<T>, C>>;
@@ -24,7 +24,6 @@ pub trait DependencyBuilder<T: ForIRI> {
     where
         T: 'a;
 }
-
 
 fn remove_targets<'a, S: Hash + Eq + Clone, C: Clone>(
     dep_map: &HashMap<S, HashMap<S, C>>,
@@ -147,12 +146,12 @@ pub fn invert_map<S: Hash + Eq + Clone, C: Clone>(
     new_map
 }
 
-pub fn build_top<T:ForIRI>() -> ClassExpression<T> {
+pub fn build_top<T: ForIRI>() -> ClassExpression<T> {
     let builder = Build::<T>::new();
     ClassExpression::Class(Class(builder.iri(OWL::Thing)))
 }
 
-pub fn build_bottom<T:ForIRI>() -> ClassExpression<T> {
+pub fn build_bottom<T: ForIRI>() -> ClassExpression<T> {
     let builder = Build::<T>::new();
     ClassExpression::Class(Class(builder.iri(OWL::Nothing)))
 }

@@ -1,9 +1,11 @@
 use crate::dependency::base::DependencyBuilder;
 use crate::dependency::symbol::{Symbol, Term};
 use crate::dependency::syntax_based::SyntaxBasedDependency;
-use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, ForIRI, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange};
+use horned_owl::model::{
+    AnnotatedComponent, ClassExpression, Component, ForIRI, ObjectPropertyDomain,
+    ObjectPropertyExpression, ObjectPropertyRange,
+};
 use std::collections::{HashMap, HashSet};
-
 
 pub struct SyntacticEverythingDependency {}
 

@@ -9,7 +9,7 @@ pub enum Symbol<T: ForIRI> {
 }
 
 impl<T: ForIRI> Symbol<T> {
-    pub(crate) fn underlying(&self) -> &T {
+    pub fn underlying(&self) -> &T {
         match self {
             Symbol::Class(t) => t,
             Symbol::Role(t) => t,

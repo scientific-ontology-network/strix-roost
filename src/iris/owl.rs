@@ -34,7 +34,8 @@ pub const ASYMMETRIC_PROPERTY: &str = "http://www.w3.org/2002/07/owl#AsymmetricP
 pub const REFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#ReflexiveProperty";
 pub const IRREFLEXIVE_PROPERTY: &str = "http://www.w3.org/2002/07/owl#IrreflexiveProperty";
 pub const FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#FunctionalProperty";
-pub const INVERSE_FUNCTIONAL_PROPERTY: &str = "http://www.w3.org/2002/07/owl#InverseFunctionalProperty";
+pub const INVERSE_FUNCTIONAL_PROPERTY: &str =
+    "http://www.w3.org/2002/07/owl#InverseFunctionalProperty";
 
 pub const INVERSE_OF: &str = "http://www.w3.org/2002/07/owl#inverseOf";
 pub const SAME_AS: &str = "http://www.w3.org/2002/07/owl#sameAs";
@@ -72,9 +73,12 @@ pub const TARGET_INDIVIDUAL: &str = "http://www.w3.org/2002/07/owl#targetIndivid
 pub const TARGET_VALUE: &str = "http://www.w3.org/2002/07/owl#targetValue";
 pub const ASSERTION_PROPERTY: &str = "http://www.w3.org/2002/07/owl#assertionProperty";
 
-pub const NEGATIVE_PROPERTY_ASSERTION: &str = "http://www.w3.org/2002/07/owl#NegativePropertyAssertion";
-pub const NEGATIVE_OBJECT_PROPERTY_ASSERTION: &str = "http://www.w3.org/2002/07/owl#NegativeObjectPropertyAssertion";
-pub const NEGATIVE_DATA_PROPERTY_ASSERTION: &str = "http://www.w3.org/2002/07/owl#NegativeDataPropertyAssertion";
+pub const NEGATIVE_PROPERTY_ASSERTION: &str =
+    "http://www.w3.org/2002/07/owl#NegativePropertyAssertion";
+pub const NEGATIVE_OBJECT_PROPERTY_ASSERTION: &str =
+    "http://www.w3.org/2002/07/owl#NegativeObjectPropertyAssertion";
+pub const NEGATIVE_DATA_PROPERTY_ASSERTION: &str =
+    "http://www.w3.org/2002/07/owl#NegativeDataPropertyAssertion";
 
 pub const PRIOR_VERSION: &str = "http://www.w3.org/2002/07/owl#priorVersion";
 pub const VERSION_INFO: &str = "http://www.w3.org/2002/07/owl#versionInfo";

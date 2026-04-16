@@ -1,7 +1,10 @@
 use crate::dependency::base::{build_top, DependencyBuilder};
 use crate::dependency::symbol::{Symbol, Term};
 use crate::dependency::syntax_based::SyntaxBasedDependency;
-use horned_owl::model::{AnnotatedComponent, ClassExpression, Component, ForIRI, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange};
+use horned_owl::model::{
+    AnnotatedComponent, ClassExpression, Component, ForIRI, ObjectPropertyDomain,
+    ObjectPropertyExpression, ObjectPropertyRange,
+};
 use std::collections::{HashMap, HashSet};
 
 pub struct GrowthDependency {}
@@ -47,8 +50,12 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for GrowthDependency {
         bce: &'a ClassExpression<T>,
     ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         let base = match *bce == build_top() {
-            true => {vec![(Term::Role(ope), Term::CE(x))]}
-            false => {vec![]}
+            true => {
+                vec![(Term::Role(ope), Term::CE(x))]
+            }
+            false => {
+                vec![]
+            }
         };
         [(Term::CE(x), Term::CE(bce)), (Term::CE(x), Term::Role(ope))]
             .into_iter()
