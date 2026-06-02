@@ -37,6 +37,11 @@ tokenizers = { version="0.22.2", optional = true }
 candle-transformers = { version = "0.9.2", optional = true }
 hf-hub = { version = "0.4.3", optional = true }
 anyhow = "1.0.100"
+rustworkx-core = "0.17.1"
+petgraph = "0.8.3"
+indicatif = "0.17.11"
+graph-cycles = "0.3.0"
+graphalgs = "0.2.0"
 
 [features]
 default = ["ai-dependency-check"]

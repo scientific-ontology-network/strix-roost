@@ -9,8 +9,9 @@ use horned_owl::vocab::OWL;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
-pub type ComplexDependencyMap<'a, T, C> = HashMap<Term<'a, T>, HashMap<Term<'a, T>, C>>;
-pub type DependencyMap<T, C> = HashMap<Symbol<T>, HashMap<Symbol<T>, C>>;
+pub type TermDependencyPair<'a, T> = (Term<'a, T>, Term<'a, T>, HashSet<Vec<&'a Component<T>>>);
+pub type TermDependencyMap<'a, T> = HashMap<Term<'a, T>, HashMap<Term<'a, T>, HashSet<Vec<&'a Component<T>>>>>;
+pub type SymbolDependencyMap<'a, T> = HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<Vec<&'a Component<T>>>>>;
 
 /// Trait for building dependency relationships between ontological components
 pub trait DependencyBuilder<T: ForIRI> {
@@ -20,7 +21,7 @@ pub trait DependencyBuilder<T: ForIRI> {
     /// * `ontology_iter` - An iterator over annotated ontology components
     fn build_dependencies<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-    ) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>>
+    ) -> SymbolDependencyMap<'a, T>
     where
         T: 'a;
 }
@@ -59,21 +60,20 @@ fn remove_targets<'a, S: Hash + Eq + Clone, C: Clone>(
 }
 
 pub fn remove_super_symbols<'a, T: ForIRI>(
-    dep_map: &DependencyMap<T, HashSet<&'a Component<T>>>,
+    dep_map: &SymbolDependencyMap<'a, T>,
     ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-) -> DependencyMap<T, HashSet<&'a Component<T>>>
+) -> SymbolDependencyMap<'a, T>
 where
     T: 'a,
 {
-    let sup_map: DependencyMap<T, HashSet<&'a Component<T>>> =
-        transitive_closure(&build_super_map(ontology_iter));
+    let deps = build_super_map(ontology_iter);
+    let sup_map = transitive_closure(deps, 0);
     remove_targets(&dep_map, &sup_map)
 }
 
 fn build_super_map<'a, T: ForIRI>(
     ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-) -> ComplexDependencyMap<'a, T, HashSet<&'a Component<T>>>
-where {
+) -> TermDependencyMap<'a, T> {
     let mut sup_map = HashMap::new();
     for ax in ontology_iter {
         match &ax.component {
@@ -81,7 +81,7 @@ where {
                 sup_map
                     .entry(Term::CE(&sco.sub))
                     .or_insert(HashMap::new())
-                    .insert(Term::CE(&sco.sup), [&ax.component].into());
+                    .insert(Term::CE(&sco.sup), [[&ax.component].into()].into());
             }
             Component::EquivalentClasses(EquivalentClasses(ecs)) => {
                 for a in ecs {
@@ -90,11 +90,11 @@ where {
                             sup_map
                                 .entry(Term::CE(a))
                                 .or_insert(HashMap::new())
-                                .insert(Term::CE(b), [&ax.component].into());
+                                .insert(Term::CE(b), [[&ax.component].into()].into());
                             sup_map
                                 .entry(Term::CE(b))
                                 .or_insert(HashMap::new())
-                                .insert(Term::CE(a), [&ax.component].into());
+                                .insert(Term::CE(a), [[&ax.component].into()].into());
                         }
                     }
                 }
@@ -105,7 +105,7 @@ where {
                     sup_map
                         .entry(Term::Role(ope))
                         .or_insert(HashMap::new())
-                        .insert(Term::Role(&sco.sup), [&ax.component].into());
+                        .insert(Term::Role(&sco.sup), [[&ax.component].into()].into());
                 }
             },
             Component::EquivalentObjectProperties(EquivalentObjectProperties(ecs)) => {
@@ -115,11 +115,11 @@ where {
                             sup_map
                                 .entry(Term::Role(a))
                                 .or_insert(HashMap::new())
-                                .insert(Term::Role(b), [&ax.component].into());
+                                .insert(Term::Role(b), [[&ax.component].into()].into());
                             sup_map
                                 .entry(Term::Role(b))
                                 .or_insert(HashMap::new())
-                                .insert(Term::Role(a), [&ax.component].into());
+                                .insert(Term::Role(a), [[&ax.component].into()].into());
                         }
                     }
                 }

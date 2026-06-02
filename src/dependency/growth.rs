@@ -1,4 +1,4 @@
-use crate::dependency::base::{build_top, DependencyBuilder};
+use crate::dependency::base::{build_top, DependencyBuilder, SymbolDependencyMap};
 use crate::dependency::symbol::{Symbol, Term};
 use crate::dependency::syntax_based::SyntaxBasedDependency;
 use horned_owl::model::{
@@ -12,7 +12,7 @@ pub struct GrowthDependency {}
 impl<T: ForIRI> DependencyBuilder<T> for GrowthDependency {
     fn build_dependencies<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-    ) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>> {
+    ) -> SymbolDependencyMap<'a, T> {
         Self::derive_from_axioms(ontology_iter)
     }
 }

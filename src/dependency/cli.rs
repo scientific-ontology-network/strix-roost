@@ -45,6 +45,13 @@ impl Runnable<ArcStr> for DependencyWriter {
         };
         let dependencies = dependency_mechanism(set_index.iter());
 
+        let num_dependencies : usize = dependencies.iter().map(|(_,v)| v.len()).sum();
+        let num_paths : usize = dependencies.iter().map(|(_,v)| v.iter().map(|(_,paths)| paths.len()).sum::<usize>()).sum();
+
+        println!("{:?} paths found", num_paths);
+        println!("{:?} dependencies found", num_dependencies);
+
+
         let cleaned_dependencies = remove_super_symbols(&dependencies, set_index.iter());
 
         let mut results = HashMap::new();
@@ -53,14 +60,15 @@ impl Runnable<ArcStr> for DependencyWriter {
             let mut r = HashMap::new();
             for (k, k_ax) in vs {
                 let k_iri = k.underlying();
-                let ax_list: Vec<String> = k_ax
+                let ax_list: Vec<Vec<String>> = k_ax
                     .iter()
-                    .map(|&ax| ax.as_functional().to_string())
+                    .map(|axs| axs.iter().map(|ax| ax.as_functional().to_string()).collect())
                     .collect();
                 r.insert(k.underlying().to_string(), json!({"cause": ax_list}));
             }
             results.insert(a.underlying().to_string(), r);
         }
+
         //#[cfg(feature = "ai-dependency-check")]
         //if self.llm {
         //    let annotations = Annotations::from(&onto);

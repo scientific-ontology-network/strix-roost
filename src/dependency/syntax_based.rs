@@ -1,4 +1,4 @@
-use crate::dependency::base::DependencyBuilder;
+use crate::dependency::base::{DependencyBuilder, SymbolDependencyMap, TermDependencyPair};
 use crate::dependency::symbol::{Symbol, Term};
 use crate::util::graph::transitive_closure;
 use horned_owl::model::{
@@ -37,20 +37,17 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
 
     fn derive_from_axioms<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-    ) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>> {
+    ) -> SymbolDependencyMap<'a, T> {
         let mut map = HashMap::new();
         for (a, b, c) in Self::dependencies_from_components(ontology_iter) {
-            if !map.contains_key(&a) {
-                map.insert(a.clone(), HashMap::new());
-            }
-            map.get_mut(&a).unwrap().insert(b, c);
+            map.entry(a).or_insert_with(HashMap::new).entry(b).or_insert_with(HashSet::new).extend(c);
         }
-        transitive_closure(&map)
+        transitive_closure(map, 1)
     }
 
     fn dependencies_from_components<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-    ) -> Vec<(Term<'a, T>, Term<'a, T>, HashSet<&'a Component<T>>)> where {
+    ) -> Vec<TermDependencyPair<'a, T>> where {
         ontology_iter
             .flat_map(|ce| {
                 (match &ce.component {
@@ -151,7 +148,7 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
                     _ => HashSet::new(),
                 })
                 .into_iter()
-                .map(|(k, v)| (k, v, [&ce.component].iter().cloned().collect()))
+                .map(|(k, v)| (k, v, [vec![&ce.component]].into()))
             })
             .collect()
     }

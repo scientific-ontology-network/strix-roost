@@ -37,5 +37,5 @@ fn main() {
     let time = std::time::Instant::now();
     let onto = load_set_ontology(cli.in_path.to_str().unwrap()).expect("Failed to load ontology");
     cli.command.run(onto);
-    println!("Finished in {:?}", time.elapsed().as_millis());
+    println!("Finished in {:?}", time.elapsed().as_secs());
 }

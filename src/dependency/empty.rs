@@ -4,7 +4,7 @@ use horned_owl::model::{
 };
 use std::collections::{HashMap, HashSet};
 
-use crate::dependency::base::{build_top, DependencyBuilder};
+use crate::dependency::base::{build_top, DependencyBuilder, SymbolDependencyMap};
 use crate::dependency::symbol::{Symbol, Term};
 use crate::dependency::syntax_based::SyntaxBasedDependency;
 
@@ -13,7 +13,7 @@ pub struct SyntacticEmptinessDependency {}
 impl<T: ForIRI> DependencyBuilder<T> for SyntacticEmptinessDependency {
     fn build_dependencies<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
-    ) -> HashMap<Symbol<T>, HashMap<Symbol<T>, HashSet<&'a Component<T>>>>
+    ) -> SymbolDependencyMap<'a, T> 
     where
         T: 'a,
     {
