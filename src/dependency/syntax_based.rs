@@ -42,7 +42,7 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
         for (a, b, c) in Self::dependencies_from_components(ontology_iter) {
             map.entry(a).or_insert_with(HashMap::new).entry(b).or_insert_with(HashSet::new).extend(c);
         }
-        transitive_closure(map, 1)
+        transitive_closure(map, 0)
     }
 
     fn dependencies_from_components<'a>(
