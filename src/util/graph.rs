@@ -2,13 +2,12 @@ use std::cmp::max;
 use horned_owl::model::ForIRI;
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
-use std::hash::{Hash, RandomState};
+use std::hash::{Hash};
 use indicatif::ProgressBar;
 use petgraph::graph::{Graph, DiGraph, NodeIndex};
-use petgraph::algo::{all_simple_paths, astar};
-use petgraph::visit::{EdgeRef, Walker};
+use petgraph::algo::{astar};
+use petgraph::visit::{EdgeRef};
 use graph_cycles::Cycles;
-use itertools::Itertools;
 use crate::dependency::base::{SymbolDependencyMap, TermDependencyMap};
 
 fn merge_paths<D: Eq + Hash + Clone + Sized + Debug>(a: HashSet<Vec<D>>, b: HashSet<Vec<D>>, limit:usize) -> HashSet<Vec<D>> {
@@ -189,7 +188,6 @@ pub fn transitive_closure<'a, 'b: 'a, T: ForIRI>(
 #[cfg(test)]
 mod tests {
     use std::fmt::Display;
-    use std::option::Iter;
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 

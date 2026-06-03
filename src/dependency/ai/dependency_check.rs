@@ -1,7 +1,6 @@
 use crate::dependency::ai::model::DependencyCheckModel;
 use crate::ontology::processors::annotations::Annotations;
 use horned_owl::model::ForIRI;
-use horned_owl::ontology::indexed::ForIndex;
 use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
 

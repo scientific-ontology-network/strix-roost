@@ -3,7 +3,6 @@ use crate::ontology::processors::annotations::Annotations;
 use clap::Args;
 use horned_owl::model::{ForIRI, Literal};
 use horned_owl::ontology::set::SetOntology;
-use itertools::Itertools;
 use serde_json::{json, Value};
 use std::collections::HashSet;
 use std::fs::File;
