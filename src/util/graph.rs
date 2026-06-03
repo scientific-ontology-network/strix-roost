@@ -186,65 +186,6 @@ pub fn transitive_closure<'a, 'b: 'a, T: ForIRI>(
     map
 }
 
-pub fn transitive_closure_naive<'a, 'b: 'a, T: ForIRI>(
-    depmap: TermDependencyMap<'a, T>, k: usize,
-) -> SymbolDependencyMap<'a, T> {
-    let mut graph = DiGraph::new();
-    let edges = depmap.iter().flat_map(|(k,vd)| vd.iter().map(|(k2,_d)|(k.clone(), k2))).collect::<HashSet<_>>();
-    let nodes = edges.iter().flat_map(|(a,b)|[a,b]).cloned().collect::<HashSet<_>>();
-    let node_map = nodes.into_iter().map(|n| (n.clone(),graph.add_node(n))).collect::<HashMap<_,_>>();
-    let inv_node_map = node_map.iter().map(|(a,b)|(b,a.clone())).collect::<HashMap<_,_>>();
-    for (a,b) in edges {
-        graph.add_edge(node_map[&a], node_map[&b], ());
-    };
-
-    let symbols = node_map.keys().filter(|&x| x.is_atomic()).collect::<HashSet<_>>();
-    let mut result = HashMap::new();
-    let bar = ProgressBar::new(symbols.len() as u64);
-    for &n in symbols.iter() {
-        bar.inc(1);
-        let mut results_for_n = HashMap::new();
-        for &m in symbols.iter() {
-
-            let mut succs = HashSet::new();
-            let mut paths = all_simple_paths::<Vec<_>, _, RandomState>(&graph, node_map[&n], node_map[&m], 0, None);
-            let mut maybe_path = paths.next();
-            while maybe_path.is_some() && succs.len() < k  {
-                let path = maybe_path.unwrap();
-                let mapped_path = path.iter().map(|x| inv_node_map[&x].clone()).collect::<Vec<_>>();
-                let mut aggregated_path_data = HashSet::new();
-                aggregated_path_data.insert(vec![]);
-                for i in 0..path.len()-1 {
-                    let a = &mapped_path[i];
-                    let b = &mapped_path[i+1];
-                    let mut next_aggregated_path_data = HashSet::new();
-                    'outer: for l in aggregated_path_data.iter() {
-                        for r in depmap[a][b].iter(){
-                            next_aggregated_path_data.insert( [&l[..], &r[..]].concat());
-                            if next_aggregated_path_data.len() >= k - succs.len() {
-                                break 'outer;
-                            }
-                        }
-                    }
-                    aggregated_path_data = next_aggregated_path_data;
-                }
-                let mut next_iter = aggregated_path_data.into_iter();
-                let mut next = next_iter.next();
-                while next.is_some() && succs.len() < k{
-                    succs.insert(next.unwrap());
-                    next = next_iter.next();
-                }
-                maybe_path = paths.next();
-            };
-            if succs.len() > 0 {
-            results_for_n.insert(m.get_symbol().unwrap().clone(), succs);
-            }
-        }
-        result.insert(n.get_symbol().unwrap().clone(), results_for_n);
-    }
-    result
-}
-
 #[cfg(test)]
 mod tests {
     use std::fmt::Display;
