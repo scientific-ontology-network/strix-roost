@@ -21,7 +21,7 @@ fn expand_map<K: Eq + Hash, C: Eq + Hash>(m1: &mut HashMap<K, HashSet<C>>, m2: H
     }
 }
 
-Fpub fn transitive_closure_with_data<K: Hash + Eq + Clone + Debug, D: Eq + Hash + Clone + Sized + Debug>(
+pub fn transitive_closure_with_data<K: Hash + Eq + Clone + Debug, D: Eq + Hash + Clone + Sized + Debug>(
     depmap: HashMap<K, HashMap<K, HashSet<Vec<D>>>>, k: usize,
 ) -> HashMap<K, HashMap<K, HashSet<Vec<D>>>> {
     let nodes = depmap.keys().chain(depmap.values().flat_map(|v| v.keys())).collect::<HashSet<_>>();
