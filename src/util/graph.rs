@@ -317,6 +317,20 @@ mod tests {
     }
 
     #[test]
+    fn test_transitive_closure_cycle2() {
+        let graph = construct_graph(vec![
+            (String::from("a"),vec![String::from("b")]),
+            (String::from("b"),vec![String::from("c")]),
+            (String::from("c"),vec![String::from("d"), String::from("e")]),
+            (String::from("e"),vec![String::from("a"), String::from("f")]),
+        ]);
+        let tc = transitive_closure_slow(graph, 5);
+        println!("{:?}", tc);
+
+        assert_eq!(tc["a"]["f"], HashSet::from([vec!["a->b".into(), "b->c".into(), "c->e".into(), "e->f".into()]]));
+    }
+
+    #[test]
     fn test_transitive_closure_nontree() {
         let graph:HashMap<&str, HashMap<&str, HashSet<Vec<&str>>>> = HashMap::from([
             ("a",HashMap::from([("b", [vec!["a->b"]].into())])),
