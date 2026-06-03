@@ -2,8 +2,8 @@
 pub mod ai;
 pub mod base;
 pub mod cli;
-mod empty;
-mod everything;
+pub mod empty;
+pub mod everything;
 pub mod growth;
 mod hop;
 pub mod symbol;

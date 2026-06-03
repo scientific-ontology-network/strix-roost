@@ -1,2 +1,2 @@
 pub mod error;
-pub(crate) mod graph;
+pub mod graph;

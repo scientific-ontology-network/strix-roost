@@ -21,7 +21,7 @@ fn expand_map<K: Eq + Hash, C: Eq + Hash>(m1: &mut HashMap<K, HashSet<C>>, m2: H
     }
 }
 
-pub fn transitive_closure_slow<K: Hash + Eq + Clone + Debug, D: Eq + Hash + Clone + Sized + Debug>(
+Fpub fn transitive_closure_with_data<K: Hash + Eq + Clone + Debug, D: Eq + Hash + Clone + Sized + Debug>(
     depmap: HashMap<K, HashMap<K, HashSet<Vec<D>>>>, k: usize,
 ) -> HashMap<K, HashMap<K, HashSet<Vec<D>>>> {
     let nodes = depmap.keys().chain(depmap.values().flat_map(|v| v.keys())).collect::<HashSet<_>>();
@@ -37,7 +37,7 @@ pub fn transitive_closure_slow<K: Hash + Eq + Clone + Debug, D: Eq + Hash + Clon
         inv_index_map.insert(idx, node.clone());
     }
     for (k,vs) in depmap.iter() {
-        for (v, data) in vs{
+        for (v, data) in vs {
             graph.add_edge(index_map[k],index_map[v], data_count);
             data_map.insert(data_count, data);
             data_count = data_count + 1;
@@ -172,7 +172,7 @@ pub fn transitive_closure_slow<K: Hash + Eq + Clone + Debug, D: Eq + Hash + Clon
 pub fn transitive_closure<'a, 'b: 'a, T: ForIRI>(
     graph: TermDependencyMap<'a, T>, k: usize,
 ) -> SymbolDependencyMap<'a, T> {
-    let tc = transitive_closure_slow(graph, k);
+    let tc = transitive_closure_with_data(graph, k);
     // Reduce to symbolic parts
     let map = tc.into_iter().filter_map(|(k, vd)|
         match k.is_atomic() {
@@ -228,7 +228,7 @@ mod tests {
             ("a",vec!["b"]),
             ("b",vec!["c"]),
         ]);
-        let tc = transitive_closure_slow(graph, 5);
+        let tc = transitive_closure_with_data(graph, 5);
         println!("{:?}", tc);
         assert_eq!(tc["a"]["c"], HashSet::from([vec!["a->b".into(), "b->c".into()]]));
     }
@@ -240,7 +240,7 @@ mod tests {
             (String::from("b"),vec![String::from("c")]),
             (String::from("c"),vec![String::from("a"), String::from("d")]),
         ]);
-        let tc = transitive_closure_slow(graph, 5);
+        let tc = transitive_closure_with_data(graph, 5);
         println!("{:?}", tc);
 
         assert_eq!(tc["a"]["c"], HashSet::from([vec!["a->b".into(), "b->c".into()]]));
@@ -256,10 +256,34 @@ mod tests {
             (String::from("c"),vec![String::from("d"), String::from("e")]),
             (String::from("e"),vec![String::from("a"), String::from("f")]),
         ]);
-        let tc = transitive_closure_slow(graph, 5);
+        let tc = transitive_closure_with_data(graph, 5);
         println!("{:?}", tc);
 
         assert_eq!(tc["a"]["f"], HashSet::from([vec!["a->b".into(), "b->c".into(), "c->e".into(), "e->f".into()]]));
+    }
+
+    #[test]
+    fn test_transitive_closure_cycle3() {
+        let graph = construct_graph(vec![
+            (String::from("a"),vec![String::from("b")]),
+            (String::from("b"),vec![String::from("c"), String::from("a")]),
+        ]);
+        let tc = transitive_closure_with_data(graph, 5);
+        println!("{:?}", tc);
+
+        assert_eq!(tc["a"]["c"], HashSet::from([vec!["a->b".into(), "b->c".into()]]));
+    }
+
+    #[test]
+    fn test_transitive_closure_cycle4() {
+        let graph = construct_graph(vec![
+            (String::from("a"),vec![String::from("b")]),
+            (String::from("b"),vec![String::from("a"),String::from("c"), ]),
+        ]);
+        let tc = transitive_closure_with_data(graph, 5);
+        println!("{:?}", tc);
+
+        assert_eq!(tc["a"]["c"], HashSet::from([vec!["a->b".into(), "b->c".into()]]));
     }
 
     #[test]
@@ -271,7 +295,7 @@ mod tests {
             ("c",HashMap::from([("e", [vec!["c->e"]].into())])),
             ("d",HashMap::from([("e", [vec!["d->e"]].into())])),
         ]);
-        let tc = transitive_closure_slow(graph, 5);
+        let tc = transitive_closure_with_data(graph, 5);
         println!("{:?}", tc);
 
         assert_eq!(tc["a"]["e"], HashSet::from([vec!["a->b", "b->c", "c->e"], vec!["a->b", "b->d", "d->e"]]));

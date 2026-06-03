@@ -26,7 +26,7 @@ pub trait DependencyBuilder<T: ForIRI> {
         T: 'a;
 }
 
-fn remove_targets<'a, S: Hash + Eq + Clone, C: Clone>(
+pub fn remove_targets<'a, S: Hash + Eq + Clone, C: Clone>(
     dep_map: &HashMap<S, HashMap<S, C>>,
     sup_map: &HashMap<S, HashMap<S, C>>,
 ) -> HashMap<S, HashMap<S, C>> where {
