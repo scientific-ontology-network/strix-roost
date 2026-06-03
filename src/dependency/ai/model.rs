@@ -1,13 +1,10 @@
-use crate::dependency::symbol::Symbol;
 use crate::ontology::processors::annotations::Annotations;
 use anyhow::{Error as E, Result};
 use candle_core::{DType, Device, Tensor};
 use candle_nn::VarBuilder;
-use candle_transformers::models::bert::{BertModel, Config as BertConfig, HiddenAct, DTYPE};
-use hf_hub::{api::sync::Api, Repo, RepoType};
+use candle_transformers::models::bert::{BertModel, Config as BertConfig};
 use horned_owl::model::ForIRI;
-use std::collections::HashMap;
-use tokenizers::{PaddingParams, Tokenizer};
+use tokenizers::Tokenizer;
 
 pub struct DependencyCheckModel {
     use_pth: bool,

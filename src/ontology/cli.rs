@@ -1,13 +1,11 @@
 pub use crate::cli::base::Runnable;
-use crate::ontology::processors::annotations::{Annotations, AnnotationsVisitor};
-use crate::ontology::visitor::AxiomVisitor;
+use crate::ontology::processors::annotations::Annotations;
 use clap::Args;
-use horned_owl::model::AnnotationValue::AnonymousIndividual;
-use horned_owl::model::{ArcStr, ForIRI, Literal};
+use horned_owl::model::{ForIRI, Literal};
 use horned_owl::ontology::set::SetOntology;
 use itertools::Itertools;
 use serde_json::{json, Value};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use std::fs::File;
 use std::io::BufWriter;
 

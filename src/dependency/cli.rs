@@ -13,11 +13,6 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufWriter;
 
-use crate::dependency::ai::dependency_check::check_dependencies;
-use crate::ontology::processors::annotations::Annotations;
-use crate::ontology::visitor::AxiomVisitor;
-#[cfg(feature = "ai-dependency-check")]
-use candle_core::Device;
 
 // Derive dependencies
 #[derive(Args)]
@@ -59,7 +54,7 @@ impl Runnable<ArcStr> for DependencyWriter {
         for (a, vs) in cleaned_dependencies.iter() {
             let mut r = HashMap::new();
             for (k, k_ax) in vs {
-                let k_iri = k.underlying();
+                let _k_iri = k.underlying();
                 let ax_list: Vec<Vec<String>> = k_ax
                     .iter()
                     .map(|axs| axs.iter().map(|ax| ax.as_functional().to_string()).collect())

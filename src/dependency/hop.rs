@@ -1,11 +1,11 @@
 use crate::dependency::base::{build_top, DependencyBuilder, SymbolDependencyMap};
-use crate::dependency::symbol::{Symbol, Term};
+use crate::dependency::symbol::Term;
 use crate::dependency::syntax_based::SyntaxBasedDependency;
 use horned_owl::model::{
-    AnnotatedComponent, ClassExpression, Component, ForIRI, ObjectPropertyDomain,
+    AnnotatedComponent, ClassExpression, ForIRI, ObjectPropertyDomain,
     ObjectPropertyExpression, ObjectPropertyRange,
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 pub struct HopDependency {}
 

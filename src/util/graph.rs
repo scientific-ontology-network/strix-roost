@@ -1,22 +1,15 @@
 use std::cmp::max;
-use crate::dependency::symbol::{Symbol, Term};
-use horned_owl::model::{Component, ForIRI};
+use horned_owl::model::ForIRI;
 use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 use std::hash::{Hash, RandomState};
-use std::ptr::eq;
-use candle_core::D;
 use indicatif::ProgressBar;
-use petgraph::graph::{Graph, DiGraph, NodeIndex, Node, EdgeReference};
-use petgraph::algo::{all_simple_paths, dijkstra, astar};
+use petgraph::graph::{Graph, DiGraph, NodeIndex};
+use petgraph::algo::{all_simple_paths, astar};
 use petgraph::visit::{EdgeRef, Walker};
 use graph_cycles::Cycles;
 use itertools::Itertools;
-use petgraph::Direction;
-use petgraph::visit::IntoNeighbors;
-use petgraph::algo::tred::{dag_transitive_reduction_closure,dag_to_toposorted_adjacency_list};
 use crate::dependency::base::{SymbolDependencyMap, TermDependencyMap};
-use graphalgs::shortest_path;
 
 fn merge_paths<D: Eq + Hash + Clone + Sized + Debug>(a: HashSet<Vec<D>>, b: HashSet<Vec<D>>, limit:usize) -> HashSet<Vec<D>> {
     a.iter().flat_map(|ae| b.iter().map(|be| [&ae[..], &be[..]].concat())).take(limit).collect()
@@ -98,7 +91,7 @@ pub fn transitive_closure_slow<K: Hash + Eq + Clone + Debug, D: Eq + Hash + Clon
     let edges = graph.edge_references().filter_map(|e| {
         let n1 = e.source();
         let n2 = e.target();
-        let paths_n1_n2 =  data_map[e.weight()].clone();
+        let _paths_n1_n2 =  data_map[e.weight()].clone();
         let r1 = *representation_map.get(&n1).unwrap_or(&n1);
         let r2 = *representation_map.get(&n2).unwrap_or(&n2);
         if r1 != r2 {
@@ -197,7 +190,7 @@ pub fn transitive_closure_naive<'a, 'b: 'a, T: ForIRI>(
     depmap: TermDependencyMap<'a, T>, k: usize,
 ) -> SymbolDependencyMap<'a, T> {
     let mut graph = DiGraph::new();
-    let edges = depmap.iter().flat_map(|(k,vd)| vd.iter().map(|(k2,d)|(k.clone(), k2))).collect::<HashSet<_>>();
+    let edges = depmap.iter().flat_map(|(k,vd)| vd.iter().map(|(k2,_d)|(k.clone(), k2))).collect::<HashSet<_>>();
     let nodes = edges.iter().flat_map(|(a,b)|[a,b]).cloned().collect::<HashSet<_>>();
     let node_map = nodes.into_iter().map(|n| (n.clone(),graph.add_node(n))).collect::<HashMap<_,_>>();
     let inv_node_map = node_map.iter().map(|(a,b)|(b,a.clone())).collect::<HashMap<_,_>>();

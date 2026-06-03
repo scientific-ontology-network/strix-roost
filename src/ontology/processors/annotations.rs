@@ -2,9 +2,9 @@ use crate::iris::iao::DEFINITION;
 use crate::iris::rdfs::RDFS_LABEL;
 use crate::ontology::visitor::AxiomVisitor;
 use core::default::Default;
-use horned_owl::model::{Annotation, AnnotationSubject, AnnotationValue, ArcStr, ForIRI, Literal};
+use horned_owl::model::{Annotation, AnnotationSubject, AnnotationValue, ForIRI, Literal};
 use horned_owl::ontology::set::SetOntology;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub(crate) struct Annotations<'a, T: ForIRI> {
     pub(crate) labels: HashMap<T, Vec<&'a Literal<T>>>,

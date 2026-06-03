@@ -1,5 +1,5 @@
 use clap::{Parser, Subcommand};
-use horned_owl::model::{ArcStr, ForIRI};
+use horned_owl::model::ArcStr;
 use horned_owl::ontology::set::SetOntology;
 use strix_roost::dependency::cli::{DependencyWriter, Runnable};
 use strix_roost::ontology::cli::AnnotationWriter;

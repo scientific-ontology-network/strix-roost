@@ -13,7 +13,6 @@ use horned_owl::model::{
     SubObjectPropertyExpression, SubObjectPropertyOf, SymmetricObjectProperty,
     TransitiveObjectProperty, IRI,
 };
-use std::iter;
 
 pub trait AxiomVisitor<'a, T: ForIRI, OT> {
     fn match_class_list(

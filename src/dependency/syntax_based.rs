@@ -1,5 +1,5 @@
 use crate::dependency::base::{DependencyBuilder, SymbolDependencyMap, TermDependencyPair};
-use crate::dependency::symbol::{Symbol, Term};
+use crate::dependency::symbol::Term;
 use crate::util::graph::transitive_closure;
 use horned_owl::model::{
     AnnotatedComponent, AnnotationAssertion, AnnotationPropertyDomain, AnnotationPropertyRange,
