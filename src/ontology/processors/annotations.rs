@@ -1,4 +1,5 @@
-use crate::iris::iao::DEFINITION;
+use crate::iris::iao::{DEFINITION as IAO_DEFINITION};
+use crate::iris::skos::{DEFINITION as SKOS_DEFINITION};
 use crate::iris::rdfs::RDFS_LABEL;
 use crate::ontology::visitor::AxiomVisitor;
 use core::default::Default;
@@ -66,7 +67,7 @@ impl<'a, T: ForIRI> AxiomVisitor<'a, T, AnnotationPair<'a, T>> for AnnotationsVi
                         iri.underlying(),
                         get_lit(&_ann.av),
                     ))),
-                    DEFINITION => Some(AnnotationPair::Definitions((
+                    IAO_DEFINITION | SKOS_DEFINITION => Some(AnnotationPair::Definitions((
                         iri.underlying(),
                         get_lit(&_ann.av),
                     ))),
