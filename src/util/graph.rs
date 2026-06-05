@@ -51,14 +51,11 @@ pub fn transitive_closure_with_data<K: Hash + Eq + Clone + Debug, D: Eq + Hash +
     println!("Look for cycles");
     for cycle in graph.cycles(){
         let mut cycle_iter = cycle.iter();
-        let progress_bar = ProgressBar::new(cycle_iter.len() as u64);
         let c0 = cycle_iter.next().unwrap();
         let r0 = *representation_map.get(c0).unwrap_or(c0);
         let mut r0_class : HashSet<NodeIndex> = HashSet::from([r0]);
         let mut prev = *c0;
         while let Some(c1) = cycle_iter.next() {
-
-            progress_bar.inc(1);
             // Take representative of [c1]
             r0_class.insert(*c1);
             // Calculate all paths from
