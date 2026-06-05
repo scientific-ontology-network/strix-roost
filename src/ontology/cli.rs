@@ -40,6 +40,6 @@ impl<T: ForIRI> Runnable<T> for AnnotationWriter {
             "labels": annotations.labels.get(&k).unwrap_or(&Vec::new()).iter().map(render_literal).collect::<Vec<Value>>()}))).collect::<Vec<_>>());
         let file = File::create(self.out_path.clone()).expect("Failed to create file");
         let mut writer = BufWriter::new(file);
-        serde_json::to_writer(&mut writer, &json_anno).expect("Failed to write JSON to file");
+        serde_json::to_writer_pretty(&mut writer, &json_anno).expect("Failed to write JSON to file");
     }
 }
