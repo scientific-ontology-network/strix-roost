@@ -1,5 +1,5 @@
 use crate::dependency::base::{DependencyBuilder, SymbolDependencyMap, TermDependencyPair};
-use crate::dependency::symbol::Term;
+use crate::dependency::symbol::{Symbol,Term};
 use crate::util::graph::transitive_closure;
 use horned_owl::model::{
     AnnotatedComponent, AnnotationAssertion, AnnotationPropertyDomain, AnnotationPropertyRange,
@@ -140,8 +140,21 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
                     }
                     Component::AnnotationPropertyRange(ref apr) => {
                         Self::dependency_from_annotation_property_range(apr)
-                    }
-                    _ => HashSet::new(),
+                    },
+
+                    Component::OntologyID(_) => {HashSet::new()}
+                    Component::DocIRI(_) => {HashSet::new()}
+                    Component::OntologyAnnotation(_) => {HashSet::new()}
+                    Component::Import(_) => {HashSet::new()} //Todo: Maybe we should add an option to load imports
+                    Component::DeclareClass(_) => {HashSet::new()}
+                    Component::DeclareObjectProperty(_) => {HashSet::new()}
+                    Component::DeclareAnnotationProperty(_) => {HashSet::new()}
+                    Component::DeclareDataProperty(_) => {HashSet::new()}
+                    Component::DeclareNamedIndividual(_) => {HashSet::new()}
+                    Component::DeclareDatatype(_) => {HashSet::new()}
+                    Component::DatatypeDefinition(_) => {HashSet::new()}
+                    Component::HasKey(_) => {HashSet::new()}
+                    Component::Rule(_) => {HashSet::new()}
                 })
                 .into_iter()
                 .map(|(k, v)| (k, v, [vec![&ce.component]].into()))
@@ -190,15 +203,11 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
     fn dependency_from_disjoint_class_pair<'a>(
         _c1: &'a ClassExpression<T>,
         _c2: &'a ClassExpression<T>,
-    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> ;
 
     fn dependency_from_disjoint_union(
         _du: &DisjointUnion<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_sub_object_property(
         spo: &SubObjectPropertyOf<T>,
@@ -233,9 +242,7 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
 
     fn dependencies_from_object_property_chain<'a>(
         _opes: Vec<&'a ObjectPropertyExpression<T>>,
-    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> ;
 
     fn dependency_from_equiv_object_properties(
         eops: &EquivalentObjectProperties<T>,
@@ -250,69 +257,49 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
 
     fn dependency_from_disjoint_object_properties(
         _dops: &DisjointObjectProperties<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_inverse_object_properties(
-        _iop: &InverseObjectProperties<T>,
+        iop: &InverseObjectProperties<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
+        HashSet::from([(Term::ObjectProperty(&iop.0), Term::ObjectProperty(&iop.1)), (Term::ObjectProperty(&iop.1), Term::ObjectProperty(&iop.0))])
     }
 
     fn dependency_from_object_property_domain(
         _opd: &ObjectPropertyDomain<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_object_property_range(
         _opr: &ObjectPropertyRange<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_functional_object_property(
         _fop: &FunctionalObjectProperty<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_inverse_functional_object_property(
         _ifop: &InverseFunctionalObjectProperty<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_reflexive_object_property(
         _rop: &ReflexiveObjectProperty<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_irreflexive_object_property(
         _irop: &IrreflexiveObjectProperty<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_symmetric_object_property(
         _sop: &SymmetricObjectProperty<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_asymmetric_object_property(
         _aop: &AsymmetricObjectProperty<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_transitive_object_property(
         _top: &TransitiveObjectProperty<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_sub_data_property(
         _sdp: &SubDataPropertyOf<T>,
@@ -382,15 +369,11 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
 
     fn dependency_from_same_individual(
         _si: &SameIndividual<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_different_individuals(
         _di: &DifferentIndividuals<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> ;
 
     fn dependency_from_annotation_assertion(
         _aa: &AnnotationAssertion<T>,
@@ -479,36 +462,28 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
     fn dependencies_from_object_intersection_of<'a>(
         _x: &'a ClassExpression<T>,
         _ces: &'a Vec<ClassExpression<T>>,
-    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> ;
 
     // [x] = C1 v ... v Cn
     // Extracts dependencies from object union of class expressions
     fn dependencies_from_object_union_of<'a>(
         _x: &'a ClassExpression<T>,
         _ces: &'a Vec<ClassExpression<T>>,
-    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> ;
 
     // [x] = not [ce]
     // Extracts dependencies from object complement of a class expression
     fn dependencies_from_object_complement_of<'a>(
         _x: &'a ClassExpression<T>,
         _ce: &'a ClassExpression<T>,
-    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> ;
 
     // [x] = {i1, ..., in}
     // Extracts dependencies from object one-of enumeration of individuals
     fn dependencies_from_object_one_of<'a>(
         _x: &'a ClassExpression<T>,
         _is: &'a Vec<Individual<T>>,
-    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> ;
 
     // [x] = some [ope].[ce]
     // Extracts dependencies from existential restriction (object some values from)
@@ -516,9 +491,7 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
         _x: &'a ClassExpression<T>,
         _ope: &'a ObjectPropertyExpression<T>,
         _bce: &'a ClassExpression<T>,
-    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> ;
 
     // [x] = all [ope].[ce]
     // Extracts dependencies from universal restriction (object all values from)
@@ -526,9 +499,7 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
         _x: &'a ClassExpression<T>,
         _ope: &'a ObjectPropertyExpression<T>,
         _bce: &'a ClassExpression<T>,
-    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> ;
 
     // [x] = [ope] value [i]
     // Extracts dependencies from object has value restriction
@@ -536,28 +507,28 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
         _x: &'a ClassExpression<T>,
         _ope: &'a ObjectPropertyExpression<T>,
         _i: &'a Individual<T>,
-    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> ;
 
     // [x] = [ope] Self
     // Extracts dependencies from object has self restriction
     fn dependencies_from_object_has_self<'a>(
         _x: &'a ClassExpression<T>,
-        _ope: &ObjectPropertyExpression<T>,
-    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
-    }
+        _ope: &'a ObjectPropertyExpression<T>,
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> ;
 
     // [x] = >= n [ope].[ce]
     // Extracts dependencies from minimum cardinality restriction
     fn dependencies_from_object_min_cardinality<'a>(
-        _x: &'a ClassExpression<T>,
-        _ope: &'a ObjectPropertyExpression<T>,
-        _bce: &'a ClassExpression<T>,
-        _n: &'a u32,
+        x: &'a ClassExpression<T>,
+        ope: &'a ObjectPropertyExpression<T>,
+        bce: &'a ClassExpression<T>,
+        n: &'a u32,
     ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
+        if *n<=0 {
+            HashSet::new()
+        } else {
+            Self::dependencies_from_object_some_values_from(x, ope, bce)
+        }
     }
 
     // [x] = <= n [ope].[ce]
@@ -567,19 +538,21 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
         _ope: &'a ObjectPropertyExpression<T>,
         _bce: &'a ClassExpression<T>,
         _n: &'a u32,
-    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
-    }
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> ;
 
     // [x] = = n [ope].[ce]
     // Extracts dependencies from exact cardinality restriction
     fn dependencies_from_object_exact_cardinality<'a>(
-        _x: &'a ClassExpression<T>,
-        _ope: &'a ObjectPropertyExpression<T>,
-        _bce: &'a ClassExpression<T>,
-        _n: &'a u32,
+        x: &'a ClassExpression<T>,
+        ope: &'a ObjectPropertyExpression<T>,
+        bce: &'a ClassExpression<T>,
+        n: &'a u32,
     ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
+        if *n<=0 {
+            HashSet::new()
+        } else {
+            Self::dependencies_from_object_some_values_from(x, ope, bce)
+        }
     }
 
     // [x] = some [dp].[dr]
@@ -630,7 +603,7 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
         _dp: &'a DataProperty<T>,
         _dr: &'a DataRange<T>,
         _n: &'a u32,
-    ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+    ) -> HashSet<(Term<'a, T>, Term<'a, T>)>{
         HashSet::new()
     }
 
