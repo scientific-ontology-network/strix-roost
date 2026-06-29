@@ -4,7 +4,7 @@ A high-performance command-line tool to process ontologies and calculate depende
 To create a file `result.json` that contains all dependencies call:
 
 ```
-strix-roost --in-path <ontology> dependency --method <dependency> --out-path result.json
+strix-roost --in-path <ontology> dependency --method <dependency> --cause_limit 0 --out-path result.json
 ```
 
 Available methods are "growth", "empty", "everything", "hop"
