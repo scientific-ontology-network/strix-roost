@@ -21,6 +21,7 @@ pub trait DependencyBuilder<T: ForIRI> {
     /// * `ontology_iter` - An iterator over annotated ontology components
     fn build_dependencies<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
+        cause_limit: usize
     ) -> SymbolDependencyMap<'a, T>
     where
         T: 'a;

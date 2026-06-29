@@ -23,13 +23,16 @@ pub struct DependencyWriter {
     #[arg(short, long)]
     out_path: std::path::PathBuf,
 
+    #[arg(short, long)]
+    cause_limit: usize,
+
     #[cfg(feature = "ai-dependency-check")]
     #[arg(short, long)]
     llm: bool,
 }
 
 impl Runnable<ArcStr> for DependencyWriter {
-    fn run(&self, onto: SetOntology<ArcStr>) {
+    fn run(&self, onto: SetOntology<ArcStr>) -> () {
         let set_index = onto.i();
         let dependency_mechanism = match self.method.as_str() {
             "growth" => GrowthDependency::build_dependencies,
@@ -38,12 +41,12 @@ impl Runnable<ArcStr> for DependencyWriter {
             "hop" => HopDependency::build_dependencies,
             _ => panic!("Unknown dependency mechanism {}", self.method),
         };
-        let dependencies = dependency_mechanism(set_index.iter());
+        let dependencies = dependency_mechanism(set_index.iter(), self.cause_limit);
 
         let num_dependencies : usize = dependencies.iter().map(|(_,v)| v.len()).sum();
         let num_paths : usize = dependencies.iter().map(|(_,v)| v.iter().map(|(_,paths)| paths.len()).sum::<usize>()).sum();
 
-        println!("{:?} paths found", num_paths);
+        println!("{:?} causes found", num_paths);
         println!("{:?} dependencies found", num_dependencies);
 
 

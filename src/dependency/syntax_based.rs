@@ -33,12 +33,13 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
 
     fn derive_from_axioms<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
+        cause_limit: usize
     ) -> SymbolDependencyMap<'a, T> {
         let mut map = HashMap::new();
         for (a, b, c) in Self::dependencies_from_components(ontology_iter) {
             map.entry(a).or_insert_with(HashMap::new).entry(b).or_insert_with(HashSet::new).extend(c);
         }
-        transitive_closure(map, 0)
+        transitive_closure(map, cause_limit)
     }
 
     fn dependencies_from_components<'a>(

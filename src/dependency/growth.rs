@@ -9,8 +9,9 @@ pub struct GrowthDependency {}
 impl<T: ForIRI> DependencyBuilder<T> for GrowthDependency {
     fn build_dependencies<'a>(
         ontology_iter: impl Iterator<Item = &'a AnnotatedComponent<T>>,
+        cause_limit: usize
     ) -> SymbolDependencyMap<'a, T> {
-        Self::derive_from_axioms(ontology_iter)
+        Self::derive_from_axioms(ontology_iter, cause_limit)
     }
 }
 
