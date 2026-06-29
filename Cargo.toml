@@ -44,5 +44,5 @@ graph-cycles = "0.3.0"
 graphalgs = "0.2.0"
 
 [features]
-default = ["ai-dependency-check"]
+default = []
 ai-dependency-check = ["dep:candle-core", "dep:candle-nn", "dep:tokenizers", "dep:candle-transformers", "dep:hf-hub"]
