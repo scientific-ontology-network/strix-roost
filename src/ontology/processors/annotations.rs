@@ -79,6 +79,7 @@ impl<'a, T: ForIRI> AxiomVisitor<'a, T, AnnotationPair<'a, T>> for AnnotationsVi
     }
 }
 
+#[allow(dead_code)]
 fn get_english_literal<'a, T: ForIRI>(
     iri: &'a T,
     annotations: HashMap<T, Vec<&'a Literal<T>>>,

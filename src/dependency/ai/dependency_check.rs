@@ -4,6 +4,7 @@ use horned_owl::model::ForIRI;
 use serde_json::{json, Value};
 use std::collections::{HashMap, HashSet};
 
+#[allow(dead_code)]
 pub fn check_dependencies<'a, T: ForIRI>(
     dependencies: &mut HashMap<&T, HashMap<&T, Value>>,
     anno: &'a Annotations<'a, T>,

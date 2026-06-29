@@ -6,6 +6,7 @@ use candle_transformers::models::bert::{BertModel, Config as BertConfig};
 use horned_owl::model::ForIRI;
 use tokenizers::Tokenizer;
 
+#[allow(dead_code)]
 pub struct DependencyCheckModel {
     use_pth: bool,
     approximate_gelu: bool,
@@ -13,6 +14,8 @@ pub struct DependencyCheckModel {
     tokenizer: Tokenizer,
     model: BertModel,
 }
+
+#[allow(dead_code)]
 fn format_dependency<'a, T: ForIRI>(iri: &T, anno: &'a Annotations<'a, T>) -> String {
     format!(
         "{:?}; Definition: {:?}",
@@ -21,6 +24,8 @@ fn format_dependency<'a, T: ForIRI>(iri: &T, anno: &'a Annotations<'a, T>) -> St
 }
 
 impl DependencyCheckModel {
+
+    #[allow(dead_code)]
     pub(crate) fn new(device: Device) -> Self {
         let tokenizer =
             Tokenizer::from_file("model_data/sentence-transformers/minilm/tokenizer.json")
@@ -81,6 +86,7 @@ impl DependencyCheckModel {
     }
 }
 
+#[allow(dead_code)]
 fn cosine_similarity(a: &Tensor, b: &Tensor) -> Result<Tensor> {
     let dot = (a * b)?.sum_all()?;
     let norm_a = (a * a)?.sum_all()?.sqrt()?;
