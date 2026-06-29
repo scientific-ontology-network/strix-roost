@@ -18,7 +18,7 @@ impl<T: ForIRI> Symbol<T> {
 }
 
 /// Represents a symbol in an ontology, which can be either a class expression or a role.
-#[derive(Debug, Eq, Clone, Hash, PartialEq)]
+#[derive(Debug, Clone, Hash)]
 pub enum Term<'a, T: ForIRI> {
     /// A reference to a class expression
     CE(&'a ClassExpression<T>),
@@ -59,7 +59,9 @@ impl<'a, T: ForIRI> Term<'a, T> {
             _ => false,
         }
     }
+}
 
+impl<'a, T: ForIRI> PartialEq<Self> for Term<'a, T> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Term::CE(ClassExpression::Class(sc)),Term::Class(oc)) => sc == *oc,
@@ -76,3 +78,5 @@ impl<'a, T: ForIRI> Term<'a, T> {
         }
     }
 }
+
+impl<'a, T: ForIRI> Eq for Term<'a, T> {}
