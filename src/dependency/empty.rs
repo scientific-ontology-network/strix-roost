@@ -214,8 +214,6 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEmptinessDependency {
 
     fn dependencies_from_object_has_self<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
        [(Term::CE(x), Term::Role(ope))].into_iter().chain(
-           Self::dependencies_from_class_expression(x).into_iter()
-       ).chain(
            Self::dependencies_from_object_property_expression(ope).into_iter()
        ).collect()
     }
