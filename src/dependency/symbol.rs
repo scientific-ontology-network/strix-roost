@@ -38,6 +38,7 @@ impl<'a, T: ForIRI> Term<'a, T> {
         match self {
             Term::CE(ClassExpression::Class(iri)) => Some(iri.underlying()),
             Term::Role(ObjectPropertyExpression::ObjectProperty(iri)) => Some(iri.underlying()),
+            Term::Class(Class(iri)) => Some(iri.underlying()),
             _ => None,
         }
     }
@@ -47,7 +48,8 @@ impl<'a, T: ForIRI> Term<'a, T> {
             Term::CE(ClassExpression::Class(iri)) => Some(Symbol::Class(iri.underlying())),
             Term::Role(ObjectPropertyExpression::ObjectProperty(iri)) => {
                 Some(Symbol::Role(iri.underlying()))
-            }
+            },
+            Term::Class(Class(iri)) => Some(Symbol::Class(iri.underlying())),
             _ => None,
         }
     }
@@ -56,6 +58,7 @@ impl<'a, T: ForIRI> Term<'a, T> {
         match self {
             Term::CE(ClassExpression::Class(_)) => true,
             Term::Role(ObjectPropertyExpression::ObjectProperty(_)) => true,
+            Term::Class(_) => true,
             _ => false,
         }
     }
