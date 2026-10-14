@@ -1,7 +1,7 @@
 use crate::dependency::base::{build_top, DependencyBuilder, SymbolDependencyMap};
 use crate::dependency::symbol::Term;
 use crate::dependency::syntax_based::SyntaxBasedDependency;
-use horned_owl::model::{AnnotatedComponent, AsymmetricObjectProperty, ClassExpression, DifferentIndividuals, DisjointObjectProperties, DisjointUnion, ForIRI, FunctionalObjectProperty, Individual, InverseFunctionalObjectProperty, InverseObjectProperties, IrreflexiveObjectProperty, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, ReflexiveObjectProperty, SameIndividual, SymmetricObjectProperty, TransitiveObjectProperty};
+use horned_owl::model::{AnnotatedComponent, AsymmetricObjectProperty, ClassExpression, DifferentIndividuals, DisjointObjectProperties, DisjointUnion, ForIRI, FunctionalObjectProperty, Individual, InverseFunctionalObjectProperty, InverseObjectProperties, IrreflexiveObjectProperty, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, ReflexiveObjectProperty, SameIndividual, SymmetricObjectProperty, TransitiveObjectProperty, NegativeObjectPropertyAssertion};
 
 use std::collections::HashSet;
 
@@ -161,12 +161,14 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
     fn dependency_from_reflexive_object_property(
         _rop: &ReflexiveObjectProperty<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
+        println!("Reflexive object properties are not supported -- SKIP!");
         HashSet::new()
     }
 
     fn dependency_from_irreflexive_object_property(
         _irop: &IrreflexiveObjectProperty<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
+        println!("Irreflexive object properties are not supported -- SKIP!");
         HashSet::new()
     }
 
@@ -179,6 +181,7 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
     fn dependency_from_asymmetric_object_property(
         _aop: &AsymmetricObjectProperty<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
+        println!("Asymmetric object properties are not supported -- SKIP!");
         HashSet::new()
     }
 
@@ -226,6 +229,11 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
     }
 
     fn dependencies_from_object_max_cardinality<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        HashSet::new()
+    }
+
+    fn dependency_from_negative_object_property_assertion(_nopa: &NegativeObjectPropertyAssertion<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
+        println!("Negative object property assertions are not supported -- SKIP!");
         HashSet::new()
     }
 }
