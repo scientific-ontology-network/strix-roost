@@ -80,12 +80,12 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
 
     fn dependencies_from_object_all_values_from<'a>(
         x: &'a ClassExpression<T>,
-        ope: &'a ObjectPropertyExpression<T>,
-        _bce: &'a ClassExpression<T>,
+        _ope: &'a ObjectPropertyExpression<T>,
+        bce: &'a ClassExpression<T>,
     ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        [(Term::CE(x), Term::Role(ope))]
+        [(Term::CE(bce), Term::CE(x))]
             .into_iter()
-            .chain(Self::dependencies_from_object_property_expression(ope))
+            .chain(Self::dependencies_from_class_expression(bce))
             .collect()
     }
 
