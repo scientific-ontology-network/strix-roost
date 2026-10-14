@@ -212,9 +212,10 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEmptinessDependency {
         HashSet::new()
     }
 
-    fn dependencies_from_object_has_value<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _i: &'a Individual<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        std::println!("Object has balue is not supported -- SKIP!");
-        HashSet::new()
+    fn dependencies_from_object_has_value<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, _i: &'a Individual<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+       [(Term::CE(x), Term::Role(ope))].into_iter().chain(
+           Self::dependencies_from_object_property_expression(ope).into_iter()
+       ).collect()
     }
 
     fn dependencies_from_object_has_self<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
@@ -225,14 +226,16 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEmptinessDependency {
        ).collect()
     }
 
-
     fn dependencies_from_object_max_cardinality<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_object_exact_cardinality<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        // todo!()
-        HashSet::new()
+    fn dependencies_from_object_exact_cardinality<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, bce: &'a ClassExpression<T>, n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        let mut deps = Self::dependencies_from_object_min_cardinality(x, ope, bce, n);
+        deps.extend(
+            Self::dependencies_from_object_max_cardinality(x, ope, bce, n)
+        );
+        return deps;
     }
 
     fn dependencies_from_data_some_values_from<'a>(_x: &'a ClassExpression<T>, _dp: &'a DataProperty<T>, _dr: &'a DataRange<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
