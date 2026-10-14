@@ -224,8 +224,10 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
         HashSet::new()
     }
 
-    fn dependencies_from_object_has_self<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
+    fn dependencies_from_object_has_self<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+       [(Term::Role(ope), Term::CE(x))].into_iter().chain(
+           Self::dependencies_from_object_property_expression(ope).into_iter()
+       ).collect()
     }
 
     fn dependencies_from_object_max_cardinality<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
