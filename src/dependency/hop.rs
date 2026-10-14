@@ -28,8 +28,16 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for HopDependency {
     fn dependency_from_disjoint_union(
         _du: &DisjointUnion<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
+        // Same logic as dependencies_from_object_union_of()
+        _du.1.iter()
+            .flat_map(|ce| {
+                [(Term::CE(ce), Term::Class(&_du.0))]
+                    .into_iter()
+                    .chain(Self::dependencies_from_class_expression(ce))
+            })
+            .collect()
     }
+    
     fn dependencies_from_object_property_expression(
         ope: &ObjectPropertyExpression<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
