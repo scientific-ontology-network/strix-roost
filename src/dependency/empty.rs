@@ -187,7 +187,6 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEmptinessDependency {
     }
 
     fn dependency_from_negative_object_property_assertion(_nopa: &NegativeObjectPropertyAssertion<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        std::println!("Negative object property assertions are not supported -- SKIP!");
         HashSet::new()
     }
 
