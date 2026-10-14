@@ -1,4 +1,4 @@
-use crate::dependency::base::{DependencyBuilder, SymbolDependencyMap};
+use crate::dependency::base::{build_top, DependencyBuilder, SymbolDependencyMap};
 use crate::dependency::symbol::Term;
 use crate::dependency::syntax_based::SyntaxBasedDependency;
 use horned_owl::model::{AnnotatedComponent, AsymmetricObjectProperty, ClassExpression, DifferentIndividuals, DisjointObjectProperties, DisjointUnion, ForIRI, FunctionalObjectProperty, Individual, InverseFunctionalObjectProperty, InverseObjectProperties, IrreflexiveObjectProperty, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, ReflexiveObjectProperty, SameIndividual, SymmetricObjectProperty, TransitiveObjectProperty};
@@ -204,8 +204,17 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
         HashSet::new()
     }
 
-    fn dependencies_from_object_some_values_from<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
+    fn dependencies_from_object_some_values_from<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        if *bce != build_top() {
+            return HashSet::new();
+        }
+        return [(Term::Role(ope), Term::CE(x))]
+            .into_iter()
+            // bce is Top here which doesn't yield any dependencies at the moment 
+            // but we should still call dependencies_from_class_expression() here in case any are implemented in the future
+            .chain(Self::dependencies_from_class_expression(bce))
+            .chain(Self::dependencies_from_object_property_expression(ope))
+            .collect();
     }
 
     fn dependencies_from_object_has_value<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _i: &'a Individual<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
