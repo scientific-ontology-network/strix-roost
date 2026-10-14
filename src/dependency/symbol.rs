@@ -1,6 +1,6 @@
 use horned_owl::model::{Class, ClassExpression, ForIRI, ObjectProperty, ObjectPropertyExpression};
 use std::fmt::Debug;
-use std::hash::Hash;
+use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Eq, Clone, Hash, PartialEq)]
 pub enum Symbol<T: ForIRI> {
@@ -18,7 +18,7 @@ impl<T: ForIRI> Symbol<T> {
 }
 
 /// Represents a symbol in an ontology, which can be either a class expression or a role.
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, Clone)]
 pub enum Term<'a, T: ForIRI> {
     /// A reference to a class expression
     CE(&'a ClassExpression<T>),
@@ -39,6 +39,7 @@ impl<'a, T: ForIRI> Term<'a, T> {
             Term::CE(ClassExpression::Class(iri)) => Some(iri.underlying()),
             Term::Role(ObjectPropertyExpression::ObjectProperty(iri)) => Some(iri.underlying()),
             Term::Class(Class(iri)) => Some(iri.underlying()),
+            Term::ObjectProperty(ObjectProperty(iri)) => Some(iri.underlying()),
             _ => None,
         }
     }
@@ -50,6 +51,7 @@ impl<'a, T: ForIRI> Term<'a, T> {
                 Some(Symbol::Role(iri.underlying()))
             },
             Term::Class(Class(iri)) => Some(Symbol::Class(iri.underlying())),
+            Term::ObjectProperty(ObjectProperty(iri)) => Some(Symbol::Role(iri.underlying())),
             _ => None,
         }
     }
@@ -59,6 +61,7 @@ impl<'a, T: ForIRI> Term<'a, T> {
             Term::CE(ClassExpression::Class(_)) => true,
             Term::Role(ObjectPropertyExpression::ObjectProperty(_)) => true,
             Term::Class(_) => true,
+            Term::ObjectProperty(_) => true,
             _ => false,
         }
     }
@@ -77,7 +80,24 @@ impl<'a, T: ForIRI> PartialEq<Self> for Term<'a, T> {
             (Term::InverseRole(sc), Term::InverseRole(oc)) => sc == oc,
             (Term::Class(sc), Term::Class(oc)) => sc == oc,
             (Term::ObjectProperty(sc), Term::ObjectProperty(oc)) => sc == oc,
+            (Term::Role(ObjectPropertyExpression::InverseObjectProperty(sc)), Term::InverseRole(oc)) => sc == *oc,
+            (Term::InverseRole(sc), Term::Role(ObjectPropertyExpression::InverseObjectProperty(oc))) => *sc == oc,
             (_,_) => false,
+        }
+    }
+}
+
+impl<'a, T: ForIRI> Hash for Term<'a, T> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        match self {
+            Term::CE(sc) => (*sc).hash(state),
+            Term::Class(sc) => (ClassExpression::Class((*sc).clone())).hash(state),
+
+            Term::Role(sc) => sc.hash(state),
+            Term::ObjectProperty(sc) => (ObjectPropertyExpression::ObjectProperty((*sc).clone())).hash(state),
+            Term::InverseRole(sc) => (ObjectPropertyExpression::InverseObjectProperty((*sc).clone())).hash(state),
+
+            Term::RoleComposition(sc) => (*sc).hash(state)
         }
     }
 }
