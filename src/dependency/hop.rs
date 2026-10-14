@@ -43,9 +43,11 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for HopDependency {
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         match ope {
             ObjectPropertyExpression::ObjectProperty(_op) => HashSet::new(),
-            ObjectPropertyExpression::InverseObjectProperty(_op) => {
-                println!("Inverse object properties are not supported in syntactic emptiness dependency yet. Skipping!");
-                HashSet::new()
+            ObjectPropertyExpression::InverseObjectProperty(op) => {
+                HashSet::from([
+                    (Term::ObjectProperty(op), Term::InverseRole(&op)),
+                    (Term::InverseRole(&op), Term::ObjectProperty(op))
+                ])
             }
         }
     }
