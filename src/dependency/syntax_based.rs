@@ -18,7 +18,7 @@ use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
 fn quasiproduct<T: Eq + Clone>(it: Vec<T>) -> Vec<(T, T)> {
-    it.iter().combinations(2).map(|v| (v[0].clone(),v[1].clone())).collect()
+    it.iter().permutations(2).map(|v| (v[0].clone(),v[1].clone())).collect()
 }
 /// Trait for analyzing syntax-based dependencies in ontological components
 pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
