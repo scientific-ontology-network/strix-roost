@@ -144,6 +144,7 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for GrowthDependency {
     fn dependency_from_reflexive_object_property(
         _rop: &ReflexiveObjectProperty<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
+        println!("Reflexive object properties are not supported -- SKIP!");
         HashSet::new()
     }
 
@@ -188,6 +189,7 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for GrowthDependency {
     }
 
     fn dependencies_from_object_one_of<'a>(_x: &'a ClassExpression<T>, _is: &'a Vec<Individual<T>>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        std::println!("Nominals are not supported -- SKIP!");
         HashSet::new()
     }
 
