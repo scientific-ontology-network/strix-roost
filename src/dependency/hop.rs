@@ -1,7 +1,7 @@
 use crate::dependency::base::{build_top, DependencyBuilder, SymbolDependencyMap};
 use crate::dependency::symbol::Term;
 use crate::dependency::syntax_based::SyntaxBasedDependency;
-use horned_owl::model::{AnnotatedComponent, AsymmetricObjectProperty, ClassExpression, DifferentIndividuals, DisjointObjectProperties, DisjointUnion, ForIRI, FunctionalObjectProperty, Individual, InverseFunctionalObjectProperty, InverseObjectProperties, IrreflexiveObjectProperty, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, ReflexiveObjectProperty, SameIndividual, SymmetricObjectProperty, TransitiveObjectProperty};
+use horned_owl::model::{AnnotatedComponent, AsymmetricObjectProperty, ClassExpression, DifferentIndividuals, DisjointObjectProperties, DisjointUnion, ForIRI, FunctionalObjectProperty, Individual, InverseFunctionalObjectProperty, IrreflexiveObjectProperty, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, ReflexiveObjectProperty, SameIndividual, SymmetricObjectProperty, TransitiveObjectProperty};
 
 use std::collections::HashSet;
 
