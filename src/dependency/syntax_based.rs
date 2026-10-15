@@ -626,16 +626,13 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::Display;
-    use std::hash::Hash;
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
-
 
     #[test]
     fn test_product() {
         let a = vec!["a", "b", "c"];
         let prod = quasiproduct(a);
-        assert_eq!(prod, vec![("a", "b"),("a", "c"),("b", "c")]);
+        assert_eq!(prod, vec![("a", "b"),("a", "c"), ("b", "a"),("b", "c"), ("c", "a"),("c", "b")]);
     }
 }
