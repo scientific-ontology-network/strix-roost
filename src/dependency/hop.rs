@@ -152,6 +152,7 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for HopDependency {
     fn dependency_from_reflexive_object_property(
         _rop: &ReflexiveObjectProperty<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
+        println!("Reflexive object properties are not supported -- SKIP!");
         HashSet::new()
     }
 
