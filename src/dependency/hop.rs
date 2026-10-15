@@ -131,12 +131,6 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for HopDependency {
         HashSet::new()
     }
 
-    fn dependency_from_inverse_object_properties(
-        _iop: &InverseObjectProperties<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
-
     fn dependency_from_functional_object_property(
         _fop: &FunctionalObjectProperty<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
@@ -204,8 +198,10 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for HopDependency {
         HashSet::new()
     }
 
-    fn dependencies_from_object_has_value<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _i: &'a Individual<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
+    fn dependencies_from_object_has_value<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, _i: &'a Individual<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+       [(Term::CE(x), Term::Role(ope))].into_iter().chain(
+           Self::dependencies_from_object_property_expression(ope).into_iter()
+       ).collect()
     }
 
     fn dependencies_from_object_has_self<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
@@ -216,5 +212,13 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for HopDependency {
 
     fn dependencies_from_object_max_cardinality<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
+    }
+
+    fn dependencies_from_object_exact_cardinality<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, bce: &'a ClassExpression<T>, n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        let mut deps = Self::dependencies_from_object_min_cardinality(x, ope, bce, n);
+        deps.extend(
+            Self::dependencies_from_object_max_cardinality(x, ope, bce, n)
+        );
+        return deps;
     }
 }

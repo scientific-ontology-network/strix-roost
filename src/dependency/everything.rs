@@ -139,12 +139,6 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         HashSet::new()
     }
-
-    fn dependency_from_inverse_object_properties(
-        _iop: &InverseObjectProperties<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
     
     fn dependency_from_functional_object_property(
         _fop: &FunctionalObjectProperty<T>,
@@ -232,6 +226,14 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
 
     fn dependencies_from_object_max_cardinality<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
+    }
+
+    fn dependencies_from_object_exact_cardinality<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, bce: &'a ClassExpression<T>, n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        let mut deps = Self::dependencies_from_object_min_cardinality(x, ope, bce, n);
+        deps.extend(
+            Self::dependencies_from_object_max_cardinality(x, ope, bce, n)
+        );
+        return deps;
     }
 
     fn dependency_from_negative_object_property_assertion(_nopa: &NegativeObjectPropertyAssertion<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
