@@ -1,7 +1,7 @@
-use crate::dependency::base::{DependencyBuilder, SymbolDependencyMap};
+use crate::dependency::base::{build_top, DependencyBuilder, SymbolDependencyMap};
 use crate::dependency::symbol::Term;
 use crate::dependency::syntax_based::SyntaxBasedDependency;
-use horned_owl::model::{AnnotatedComponent, AsymmetricObjectProperty, ClassExpression, DifferentIndividuals, DisjointObjectProperties, DisjointUnion, ForIRI, FunctionalObjectProperty, Individual, InverseFunctionalObjectProperty, InverseObjectProperties, IrreflexiveObjectProperty, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, ReflexiveObjectProperty, SameIndividual, SymmetricObjectProperty, TransitiveObjectProperty};
+use horned_owl::model::{AnnotatedComponent, AsymmetricObjectProperty, ClassExpression, DifferentIndividuals, DisjointObjectProperties, DisjointUnion, ForIRI, FunctionalObjectProperty, Individual, InverseFunctionalObjectProperty, IrreflexiveObjectProperty, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, ReflexiveObjectProperty, SameIndividual, SymmetricObjectProperty, TransitiveObjectProperty, NegativeObjectPropertyAssertion};
 
 use std::collections::HashSet;
 
@@ -31,8 +31,16 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
     fn dependency_from_disjoint_union(
         _du: &DisjointUnion<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
+        // Same logic as dependencies_from_object_union_of()
+        _du.1.iter()
+            .flat_map(|ce| {
+                [(Term::CE(ce), Term::Class(&_du.0))]
+                    .into_iter()
+                    .chain(Self::dependencies_from_class_expression(ce))
+            })
+            .collect()
     }
+    
     fn dependencies_from_object_intersection_of<'a>(
         x: &'a ClassExpression<T>,
         ces: &'a Vec<ClassExpression<T>>,
@@ -72,12 +80,12 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
 
     fn dependencies_from_object_all_values_from<'a>(
         x: &'a ClassExpression<T>,
-        ope: &'a ObjectPropertyExpression<T>,
-        _bce: &'a ClassExpression<T>,
+        _ope: &'a ObjectPropertyExpression<T>,
+        bce: &'a ClassExpression<T>,
     ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        [(Term::CE(x), Term::Role(ope))]
+        [(Term::CE(bce), Term::CE(x))]
             .into_iter()
-            .chain(Self::dependencies_from_object_property_expression(ope))
+            .chain(Self::dependencies_from_class_expression(bce))
             .collect()
     }
 
@@ -86,9 +94,11 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
     ) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         match ope {
             ObjectPropertyExpression::ObjectProperty(_op) => HashSet::new(),
-            ObjectPropertyExpression::InverseObjectProperty(_op) => {
-                println!("Inverse object properties are not supported in syntactic emptiness dependency yet. Skipping!");
-                HashSet::new()
+            ObjectPropertyExpression::InverseObjectProperty(op) => {
+                HashSet::from([
+                    (Term::ObjectProperty(op), Term::InverseRole(&op)),
+                    (Term::InverseRole(&op), Term::ObjectProperty(op))
+                ])
             }
         }
     }
@@ -129,12 +139,6 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         HashSet::new()
     }
-
-    fn dependency_from_inverse_object_properties(
-        _iop: &InverseObjectProperties<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
     
     fn dependency_from_functional_object_property(
         _fop: &FunctionalObjectProperty<T>,
@@ -151,12 +155,14 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
     fn dependency_from_reflexive_object_property(
         _rop: &ReflexiveObjectProperty<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
+        println!("Reflexive object properties are not supported -- SKIP!");
         HashSet::new()
     }
 
     fn dependency_from_irreflexive_object_property(
         _irop: &IrreflexiveObjectProperty<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
+        println!("Irreflexive object properties are not supported -- SKIP!");
         HashSet::new()
     }
 
@@ -169,6 +175,7 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
     fn dependency_from_asymmetric_object_property(
         _aop: &AsymmetricObjectProperty<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
+        println!("Asymmetric object properties are not supported -- SKIP!");
         HashSet::new()
     }
 
@@ -194,19 +201,43 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for SyntacticEverythingDependency {
         HashSet::new()
     }
 
-    fn dependencies_from_object_some_values_from<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
+    fn dependencies_from_object_some_values_from<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, bce: &'a ClassExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        if *bce != build_top() {
+            return HashSet::new();
+        }
+        return [(Term::Role(ope), Term::CE(x))]
+            .into_iter()
+            // bce is Top here which doesn't yield any dependencies at the moment 
+            // but we should still call dependencies_from_class_expression() here in case any are implemented in the future
+            .chain(Self::dependencies_from_class_expression(bce))
+            .chain(Self::dependencies_from_object_property_expression(ope))
+            .collect();
     }
 
     fn dependencies_from_object_has_value<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _i: &'a Individual<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
         HashSet::new()
     }
 
-    fn dependencies_from_object_has_self<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
-        HashSet::new()
+    fn dependencies_from_object_has_self<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+       [(Term::Role(ope), Term::CE(x))].into_iter().chain(
+           Self::dependencies_from_object_property_expression(ope).into_iter()
+       ).collect()
     }
 
     fn dependencies_from_object_max_cardinality<'a>(_x: &'a ClassExpression<T>, _ope: &'a ObjectPropertyExpression<T>, _bce: &'a ClassExpression<T>, _n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        HashSet::new()
+    }
+
+    fn dependencies_from_object_exact_cardinality<'a>(x: &'a ClassExpression<T>, ope: &'a ObjectPropertyExpression<T>, bce: &'a ClassExpression<T>, n: &'a u32) -> HashSet<(Term<'a, T>, Term<'a, T>)> {
+        let mut deps = Self::dependencies_from_object_min_cardinality(x, ope, bce, n);
+        deps.extend(
+            Self::dependencies_from_object_max_cardinality(x, ope, bce, n)
+        );
+        return deps;
+    }
+
+    fn dependency_from_negative_object_property_assertion(_nopa: &NegativeObjectPropertyAssertion<T>) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
+        println!("Negative object property assertions are not supported -- SKIP!");
         HashSet::new()
     }
 }
