@@ -1,7 +1,7 @@
 use crate::dependency::base::{build_top, DependencyBuilder, SymbolDependencyMap};
 use crate::dependency::symbol::Term;
 use crate::dependency::syntax_based::SyntaxBasedDependency;
-use horned_owl::model::{AnnotatedComponent, AsymmetricObjectProperty, ClassExpression, DifferentIndividuals, DisjointObjectProperties, DisjointUnion, ForIRI, FunctionalObjectProperty, Individual, InverseFunctionalObjectProperty, InverseObjectProperties, IrreflexiveObjectProperty, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, ReflexiveObjectProperty, SameIndividual, SymmetricObjectProperty, TransitiveObjectProperty};
+use horned_owl::model::{AnnotatedComponent, AsymmetricObjectProperty, ClassExpression, DifferentIndividuals, DisjointObjectProperties, DisjointUnion, ForIRI, FunctionalObjectProperty, Individual, InverseFunctionalObjectProperty, IrreflexiveObjectProperty, ObjectPropertyDomain, ObjectPropertyExpression, ObjectPropertyRange, ReflexiveObjectProperty, SameIndividual, SymmetricObjectProperty, TransitiveObjectProperty};
 use std::collections::HashSet;
 
 pub struct GrowthDependency {}
@@ -76,7 +76,7 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for GrowthDependency {
                 vec![]
             }
         };
-        [(Term::CE(x), Term::CE(bce)), (Term::CE(x), Term::Role(ope))]
+        [(Term::CE(x), Term::Role(ope))]
             .into_iter()
             .chain(base)
             .chain(Self::dependencies_from_class_expression(bce))
@@ -100,17 +100,20 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for GrowthDependency {
 
     // range(r) <= C
     fn dependency_from_object_property_range(
-        _opr: &ObjectPropertyRange<T>,
+        opr: &ObjectPropertyRange<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        // X -> r and X -> C, but not r -> C or C-> r
-        HashSet::new()
+        ([(Term::Role(&opr.ope), Term::CE(&opr.ce))]) // r -> X
+            .into_iter()
+            .chain(Self::dependencies_from_class_expression(&opr.ce))
+            .chain(Self::dependencies_from_object_property_expression(&opr.ope))
+            .collect()
     }
 
     // domain(r) <= C
     fn dependency_from_object_property_domain(
         opd: &ObjectPropertyDomain<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        ([(Term::Role(&opd.ope), Term::CE(&opd.ce))]) // r -> X, X -> C
+        ([(Term::Role(&opd.ope), Term::CE(&opd.ce))]) // r -> X
             .into_iter()
             .chain(Self::dependencies_from_class_expression(&opd.ce))
             .chain(Self::dependencies_from_object_property_expression(&opd.ope))
@@ -119,12 +122,6 @@ impl<T: ForIRI> SyntaxBasedDependency<T> for GrowthDependency {
 
     fn dependency_from_disjoint_object_properties(
         _dops: &DisjointObjectProperties<T>,
-    ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
-        HashSet::new()
-    }
-
-    fn dependency_from_inverse_object_properties(
-        _iop: &InverseObjectProperties<T>,
     ) -> HashSet<(Term<'_, T>, Term<'_, T>)> {
         HashSet::new()
     }
