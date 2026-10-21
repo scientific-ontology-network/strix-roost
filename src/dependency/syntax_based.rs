@@ -18,7 +18,7 @@ use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
 fn quasiproduct<T: Eq + Clone>(it: Vec<T>) -> Vec<(T, T)> {
-    it.iter().combinations(2).map(|v| (v[0].clone(),v[1].clone())).collect()
+    it.iter().permutations(2).map(|v| (v[0].clone(),v[1].clone())).collect()
 }
 /// Trait for analyzing syntax-based dependencies in ontological components
 pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
@@ -626,16 +626,13 @@ pub trait SyntaxBasedDependency<T: ForIRI>: DependencyBuilder<T> {
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::Display;
-    use std::hash::Hash;
     // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
-
 
     #[test]
     fn test_product() {
         let a = vec!["a", "b", "c"];
         let prod = quasiproduct(a);
-        assert_eq!(prod, vec![("a", "b"),("a", "c"),("b", "c")]);
+        assert_eq!(prod, vec![("a", "b"),("a", "c"), ("b", "a"),("b", "c"), ("c", "a"),("c", "b")]);
     }
 }
