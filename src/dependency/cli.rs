@@ -64,7 +64,9 @@ impl Runnable<ArcStr> for DependencyWriter {
                     .collect();
                 r.insert(k.underlying().to_string(), json!({"cause": ax_list}));
             }
-            results.insert(a.underlying().to_string(), r);
+            if !r.is_empty() {
+                results.insert(a.underlying().to_string(), r);
+            }
         }
 
         //#[cfg(feature = "ai-dependency-check")]
